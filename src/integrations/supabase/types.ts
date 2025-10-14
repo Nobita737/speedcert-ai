@@ -14,16 +14,379 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      certificate_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          status: string | null
+          submission_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          submission_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          submission_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificate_requests_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "project_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          description: string | null
+          estimated_minutes: number | null
+          id: number
+          order_index: number
+          resource_links: Json | null
+          resource_pdf_url: string | null
+          title: string
+          transcript_url: string | null
+          video_url: string | null
+          week: number
+        }
+        Insert: {
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: number
+          order_index: number
+          resource_links?: Json | null
+          resource_pdf_url?: string | null
+          title: string
+          transcript_url?: string | null
+          video_url?: string | null
+          week: number
+        }
+        Update: {
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: number
+          order_index?: number
+          resource_links?: Json | null
+          resource_pdf_url?: string | null
+          title?: string
+          transcript_url?: string | null
+          video_url?: string | null
+          week?: number
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          provider: string
+          provider_order_id: string | null
+          provider_payment_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          provider: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          provider?: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          cohort_end: string | null
+          cohort_start: string | null
+          college: string | null
+          created_at: string | null
+          email: string
+          enrolled: boolean | null
+          github_url: string
+          id: string
+          name: string
+          phone: string | null
+          preferred_track: string | null
+          updated_at: string | null
+          year: string | null
+        }
+        Insert: {
+          cohort_end?: string | null
+          cohort_start?: string | null
+          college?: string | null
+          created_at?: string | null
+          email: string
+          enrolled?: boolean | null
+          github_url: string
+          id: string
+          name: string
+          phone?: string | null
+          preferred_track?: string | null
+          updated_at?: string | null
+          year?: string | null
+        }
+        Update: {
+          cohort_end?: string | null
+          cohort_start?: string | null
+          college?: string | null
+          created_at?: string | null
+          email?: string
+          enrolled?: boolean | null
+          github_url?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          preferred_track?: string | null
+          updated_at?: string | null
+          year?: string | null
+        }
+        Relationships: []
+      }
+      project_submissions: {
+        Row: {
+          autograder_results: Json | null
+          created_at: string | null
+          demo_url: string | null
+          id: string
+          notes: string | null
+          repo_url: string
+          score: number | null
+          status: string | null
+          ta_comments: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          autograder_results?: Json | null
+          created_at?: string | null
+          demo_url?: string | null
+          id?: string
+          notes?: string | null
+          repo_url: string
+          score?: number | null
+          status?: string | null
+          ta_comments?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          autograder_results?: Json | null
+          created_at?: string | null
+          demo_url?: string | null
+          id?: string
+          notes?: string | null
+          repo_url?: string
+          score?: number | null
+          status?: string | null
+          ta_comments?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          choices: Json
+          correct_answer_index: number
+          id: number
+          order_index: number
+          quiz_id: number
+          text: string
+        }
+        Insert: {
+          choices: Json
+          correct_answer_index: number
+          id?: number
+          order_index: number
+          quiz_id: number
+          text: string
+        }
+        Update: {
+          choices?: Json
+          correct_answer_index?: number
+          id?: number
+          order_index?: number
+          quiz_id?: number
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_responses: {
+        Row: {
+          answers: Json
+          attempt_number: number | null
+          created_at: string | null
+          id: number
+          quiz_id: number
+          score: number
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          attempt_number?: number | null
+          created_at?: string | null
+          id?: number
+          quiz_id: number
+          score: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          attempt_number?: number | null
+          created_at?: string | null
+          id?: number
+          quiz_id?: number
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_responses_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          id: number
+          lesson_id: number | null
+          max_attempts: number | null
+          passing_score: number | null
+          title: string
+        }
+        Insert: {
+          id?: number
+          lesson_id?: number | null
+          max_attempts?: number | null
+          passing_score?: number | null
+          title: string
+        }
+        Update: {
+          id?: number
+          lesson_id?: number | null
+          max_attempts?: number | null
+          passing_score?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          id: number
+          lesson_id: number
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          id?: number
+          lesson_id: number
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          id?: number
+          lesson_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "ta" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +513,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "ta", "student"],
+    },
   },
 } as const
