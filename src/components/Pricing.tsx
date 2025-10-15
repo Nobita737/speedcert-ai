@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles } from "lucide-react";
+import { EnrollmentDialog } from "./EnrollmentDialog";
 
 const features = [
   "Access to all Week 1 video lessons",
@@ -16,6 +18,8 @@ const features = [
 ];
 
 const Pricing = () => {
+  const [enrollmentOpen, setEnrollmentOpen] = useState(false);
+
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background" id="pricing">
       <div className="container mx-auto max-w-4xl">
@@ -65,7 +69,12 @@ const Pricing = () => {
               ))}
             </div>
 
-            <Button size="xl" variant="hero" className="w-full mb-4">
+            <Button 
+              size="xl" 
+              variant="hero" 
+              className="w-full mb-4"
+              onClick={() => setEnrollmentOpen(true)}
+            >
               Enroll Now — ₹1,199
             </Button>
             
@@ -91,6 +100,8 @@ const Pricing = () => {
           </div>
         </div>
       </div>
+
+      <EnrollmentDialog open={enrollmentOpen} onOpenChange={setEnrollmentOpen} />
     </section>
   );
 };

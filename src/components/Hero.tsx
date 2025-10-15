@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Award, Zap } from "lucide-react";
+import { EnrollmentDialog } from "./EnrollmentDialog";
 
 const Hero = () => {
+  const [enrollmentOpen, setEnrollmentOpen] = useState(false);
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-hero">
       {/* Animated background elements */}
@@ -51,6 +55,7 @@ const Hero = () => {
               size="xl" 
               variant="accent"
               className="group"
+              onClick={() => setEnrollmentOpen(true)}
             >
               Enroll Now — ₹1,199
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -75,6 +80,8 @@ const Hero = () => {
           </div>
         </div>
       </div>
+
+      <EnrollmentDialog open={enrollmentOpen} onOpenChange={setEnrollmentOpen} />
     </section>
   );
 };

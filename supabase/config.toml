@@ -1,1 +1,11 @@
 project_id = "zbcncpmhumhgbydcsfyp"
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[functions.signup-init]
+verify_jwt = false
+
+[functions.user-dashboard]
+verify_jwt = true
