@@ -1,36 +1,36 @@
 import { Card } from "@/components/ui/card";
-import { Zap, Award, TrendingUp, Code, Clock, Shield } from "lucide-react";
+import { Zap, Award, TrendingUp, Code, BookOpen, Shield } from "lucide-react";
 
 const benefits = [
   {
-    icon: Clock,
-    title: "Fast-Track Learning",
-    description: "Master AI fundamentals in just 1 week with intensive, focused curriculum designed for busy students.",
-  },
-  {
-    icon: Award,
-    title: "Verified Certificate",
-    description: "Get a blockchain-verified certificate with unique ID and QR code that employers can trust.",
-  },
-  {
-    icon: Code,
-    title: "Resume-Ready Project",
-    description: "Build an end-to-end AI project with GitHub repository, demo, and documentation.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Career Outcomes",
-    description: "Stand out in interviews with practical AI skills and a portfolio project to showcase.",
+    icon: BookOpen,
+    title: "Deep Fundamentals (Week 1)",
+    description: "Understand how AI models are designed, trained and deployed — the backend concepts that power modern AI.",
   },
   {
     icon: Zap,
-    title: "Hands-On Approach",
-    description: "100% practical learning with labs, assignments, and real-world datasets.",
+    title: "Tool-Driven Learning (Week 2)",
+    description: "Master 14 industry tools and learn how to combine them to solve real problems — no coding required.",
+  },
+  {
+    icon: Code,
+    title: "Resume-Ready Project (Week 3)",
+    description: "Deliver a polished, industry-relevant project you can add to your resume and share with employers.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Practical Career Outcomes",
+    description: "Build demonstrable skills and artifacts employers recognize — from automation to AI-driven design.",
+  },
+  {
+    icon: Award,
+    title: "Hands-On Without Coding",
+    description: "All assignments and the capstone use GUI-based tools, automations and integrations — focus on outcomes, not syntax.",
   },
   {
     icon: Shield,
     title: "Affordable Investment",
-    description: "Just ₹1,199 for a credential that adds serious value to your tech career.",
+    description: "Clear one-time price: ₹999 for full course access, certificate and project review.",
   },
 ];
 

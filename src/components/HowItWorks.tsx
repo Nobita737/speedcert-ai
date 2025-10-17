@@ -6,25 +6,25 @@ const steps = [
     number: "01",
     icon: UserPlus,
     title: "Enroll & Setup",
-    description: "Sign up, make payment, and complete the quick onboarding checklist. Get access to Slack community and course materials.",
+    description: "Sign up and pay ₹999. You'll get instant dashboard access and an onboarding guide.",
   },
   {
     number: "02",
     icon: BookOpen,
-    title: "Week 1: Learn",
-    description: "Complete intensive video lessons, hands-on labs, and mini-assignments. Build foundational AI skills across 5 focused days.",
+    title: "Week 1 — Learn",
+    description: "Foundations: how models work, data pipelines, training concepts, inference, and AI system architecture.",
   },
   {
     number: "03",
     icon: Code,
-    title: "Week 2: Build",
-    description: "Develop your capstone project from scratch. Choose NLP, CV, or Tabular track. Submit GitHub repo and demo video.",
+    title: "Week 2 — Build with Tools",
+    description: "Daily hands-on sessions with 14 tools (2 tools per day for 7 days). Practical checklists and small deliverables.",
   },
   {
     number: "04",
     icon: Award,
-    title: "Get Certified",
-    description: "Pass automated tests and TA review. Receive your verified certificate with unique ID, QR code, and LinkedIn badge.",
+    title: "Week 3 — Capstone Project & Certification",
+    description: "Choose or propose a real-world use case, implement it using AI tools (no code), submit, and get reviewed. Passing students receive two certificates.",
   },
 ];
 

@@ -19,28 +19,28 @@ const Hero = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full mb-6 animate-slide-up">
             <Zap className="w-4 h-4" />
-            <span className="text-sm font-medium">Launch Offer: ₹1,199 Only</span>
+            <span className="text-sm font-medium">Flat Price: ₹999 — One-time payment</span>
           </div>
           
           {/* Main heading */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
             Get Certified in AI
             <span className="block mt-2 bg-gradient-to-r from-accent to-white bg-clip-text text-transparent">
-              Build Career-Ready Projects
+              3 Weeks, Zero Code
             </span>
           </h1>
           
           {/* Subheading */}
           <p className="text-xl sm:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Intensive 2-week AI certification for tech students. Learn core AI, build a resume-ready project, and get a verified certificate.
+            Learn how AI works behind the scenes, master the industry tools used by engineers and product teams, and deliver a resume-ready project — no machine learning code required.
           </p>
           
           {/* Key benefits */}
           <div className="flex flex-wrap justify-center gap-6 mb-10">
             {[
-              { icon: CheckCircle2, text: "Learn in 1 Week" },
-              { icon: Award, text: "Certified in 2 Weeks" },
-              { icon: CheckCircle2, text: "Resume-Ready Project" },
+              { icon: CheckCircle2, text: "Week 1: How AI works" },
+              { icon: Award, text: "Week 2: Hands-on with 14 tools" },
+              { icon: CheckCircle2, text: "Week 3: Capstone project" },
             ].map((item, index) => (
               <div key={index} className="flex items-center gap-2 text-white/95 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
                 <item.icon className="w-5 h-5 text-accent" />
@@ -57,7 +57,7 @@ const Hero = () => {
               className="group"
               onClick={() => setEnrollmentOpen(true)}
             >
-              Enroll Now — ₹1,199
+              Enroll Now — ₹999
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 
@@ -65,18 +65,13 @@ const Hero = () => {
               variant="outline"
               className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-foreground"
             >
-              Download Syllabus
+              Download Syllabus (PDF)
             </Button>
           </div>
           
           {/* Trust indicators */}
           <div className="mt-12 text-white/80 text-sm">
-            <p className="mb-2">Trusted by 500+ students</p>
-            <div className="flex justify-center gap-8 text-xs">
-              <span>✓ Verified Certificate</span>
-              <span>✓ GitHub-Backed Projects</span>
-              <span>✓ 100% Practical</span>
-            </div>
+            <p className="mb-2">Certificate on completion • Resume-ready project • No coding required</p>
           </div>
         </div>
       </div>

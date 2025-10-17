@@ -2,36 +2,36 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const faqs = [
   {
-    question: "What are the prerequisites?",
-    answer: "Basic programming knowledge (Python preferred), a GitHub account, and familiarity with data structures like arrays and lists. We'll provide a quick refresher in Week 0.",
+    question: "What is the time commitment?",
+    answer: "About 2–3 hours per day for the first two weeks. Week 3 is project-focused and may require additional time depending on the chosen capstone.",
   },
   {
-    question: "How much time do I need to dedicate?",
-    answer: "Week 1 requires ~3-4 hours per day (5 days). Week 2 is more flexible but expect 20+ hours total for your capstone project. Most students complete it in 2 weeks.",
+    question: "Do I need to know coding or Python?",
+    answer: "No. This program is designed to be zero-code. All tool exercises and the capstone use GUI-based tools and no programming is required.",
   },
   {
-    question: "Is the certificate recognized by employers?",
-    answer: "Yes! Our certificates include unique verification IDs, QR codes, and public verification pages. You'll also have a GitHub repository as proof of your work.",
+    question: "What will I receive after completion?",
+    answer: "Two downloadable PDFs: an AI Certified certificate and a Project Completion certificate. Each contains a unique verification ID and QR code.",
   },
   {
-    question: "What if I can't complete in 2 weeks?",
-    answer: "No problem! While designed for 2 weeks, you get lifetime access to course materials. Most students complete within 3-4 weeks if they need extra time.",
+    question: "Is the certificate verifiable by employers?",
+    answer: "Yes — each certificate includes a unique ID and a verification URL/QR code where employers can confirm authenticity.",
   },
   {
-    question: "Can I get a refund?",
-    answer: "Yes, we offer a full refund within 48 hours of enrollment if you haven't accessed course materials. Partial refunds are evaluated case-by-case.",
+    question: "When does Week 3 unlock?",
+    answer: "Week 3 automatically unlocks 14 days after enrollment. Admin can unlock earlier in special cases.",
   },
   {
-    question: "What technology will I learn?",
-    answer: "You'll work with Python, NumPy, Pandas, Scikit-learn, TensorFlow/PyTorch basics, and deployment tools like Streamlit and FastAPI. All practical, industry-standard tools.",
+    question: "Can I work in a team for the capstone?",
+    answer: "Yes. Teams of 1–4 are allowed. Team formation requires approval by an instructor or admin.",
   },
   {
-    question: "Do I need to pay for cloud computing?",
-    answer: "No! We provide Google Colab starter notebooks which are free. You can also use Binder. No GPU costs required for this course.",
+    question: "What if I need a refund?",
+    answer: "Refunds are handled per the platform policy — contact support for details on refund requests and eligibility.",
   },
   {
-    question: "Will I get job placement support?",
-    answer: "While we don't guarantee placements, you'll receive guidance on adding your project to your resume and LinkedIn. Your verified certificate and GitHub project are designed to help you stand out.",
+    question: "Will this improve my job prospects?",
+    answer: "The course is focused on practical, demonstrable outcomes. The resume-ready project and verifiable certificates are designed to strengthen your job applications.",
   },
 ];
 
