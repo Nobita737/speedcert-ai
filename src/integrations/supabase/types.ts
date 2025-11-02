@@ -374,7 +374,38 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      questions_for_quiz: {
+        Row: {
+          choices: Json | null
+          id: number | null
+          order_index: number | null
+          quiz_id: number | null
+          text: string | null
+        }
+        Insert: {
+          choices?: Json | null
+          id?: number | null
+          order_index?: number | null
+          quiz_id?: number | null
+          text?: string | null
+        }
+        Update: {
+          choices?: Json | null
+          id?: number | null
+          order_index?: number | null
+          quiz_id?: number | null
+          text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
