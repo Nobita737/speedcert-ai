@@ -9,3 +9,18 @@ verify_jwt = false
 
 [functions.user-dashboard]
 verify_jwt = true
+
+[functions.validate-referral]
+verify_jwt = false
+
+[functions.track-referral]
+verify_jwt = false
+
+[functions.complete-enrollment]
+verify_jwt = true
+
+[functions.get-referral-stats]
+verify_jwt = true
+
+[functions.redeem-points]
+verify_jwt = true

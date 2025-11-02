@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -15,7 +15,9 @@ import {
   Calendar,
   ChevronRight,
   Award,
-  Loader2
+  Loader2,
+  Gift,
+  Users
 } from "lucide-react";
 
 interface DashboardData {
@@ -31,14 +33,33 @@ interface DashboardData {
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
+  const [referralCode, setReferralCode] = useState<string>("");
 
   useEffect(() => {
     if (user) {
       loadDashboardData();
+      loadReferralCode();
     }
   }, [user]);
+
+  const loadReferralCode = async () => {
+    try {
+      const { data: codeData } = await supabase
+        .from('referral_codes')
+        .select('code')
+        .eq('user_id', user?.id)
+        .single();
+      
+      if (codeData) {
+        setReferralCode(codeData.code);
+      }
+    } catch (error) {
+      console.error('Failed to load referral code:', error);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -132,6 +153,27 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground">Capstone status</p>
           </Card>
         </div>
+
+        {/* Referral Card */}
+        {referralCode && (
+          <Card className="p-6 mb-8 bg-gradient-to-br from-primary/10 to-primary/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Gift className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Refer Friends & Earn Rewards</h3>
+                  <p className="text-sm text-muted-foreground">Your referral code: <span className="font-mono font-bold text-primary">{referralCode}</span></p>
+                </div>
+              </div>
+              <Button onClick={() => navigate('/referrals')} variant="outline">
+                View Referrals
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </Card>
+        )}
 
         {/* Progress Bar */}
         <Card className="p-6 mb-8">

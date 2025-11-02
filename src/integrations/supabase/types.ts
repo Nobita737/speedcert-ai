@@ -322,6 +322,239 @@ export type Database = {
           },
         ]
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_points: {
+        Row: {
+          available_points: number | null
+          id: string
+          pending_points: number | null
+          redeemed_points: number | null
+          total_points: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          available_points?: number | null
+          id?: string
+          pending_points?: number | null
+          redeemed_points?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          available_points?: number | null
+          id?: string
+          pending_points?: number | null
+          redeemed_points?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_redemptions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          points_used: number
+          redemption_details: Json | null
+          redemption_type: Database["public"]["Enums"]["redemption_type"]
+          status: Database["public"]["Enums"]["redemption_status"] | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          points_used: number
+          redemption_details?: Json | null
+          redemption_type: Database["public"]["Enums"]["redemption_type"]
+          status?: Database["public"]["Enums"]["redemption_status"] | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          points_used?: number
+          redemption_details?: Json | null
+          redemption_type?: Database["public"]["Enums"]["redemption_type"]
+          status?: Database["public"]["Enums"]["redemption_status"] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string | null
+          id: string
+          points_earned: number
+          reason: string
+          referral_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          points_earned: number
+          reason: string
+          referral_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          points_earned?: number
+          reason?: string
+          referral_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_rewards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_settings: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string | null
+          enrolled_at: string | null
+          id: string
+          points_awarded: number | null
+          referee_id: string
+          referral_code: string
+          referrer_id: string
+          status: Database["public"]["Enums"]["referral_status"] | null
+        }
+        Insert: {
+          created_at?: string | null
+          enrolled_at?: string | null
+          id?: string
+          points_awarded?: number | null
+          referee_id: string
+          referral_code: string
+          referrer_id: string
+          status?: Database["public"]["Enums"]["referral_status"] | null
+        }
+        Update: {
+          created_at?: string | null
+          enrolled_at?: string | null
+          id?: string
+          points_awarded?: number | null
+          referee_id?: string
+          referral_code?: string
+          referrer_id?: string
+          status?: Database["public"]["Enums"]["referral_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_progress: {
         Row: {
           completed: boolean | null
@@ -408,6 +641,11 @@ export type Database = {
       }
     }
     Functions: {
+      check_redemption_eligibility: {
+        Args: { p_points_needed: number; p_user_id: string }
+        Returns: boolean
+      }
+      generate_referral_code: { Args: { p_user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -415,9 +653,25 @@ export type Database = {
         }
         Returns: boolean
       }
+      process_redemption: {
+        Args: {
+          p_details: Json
+          p_points: number
+          p_type: Database["public"]["Enums"]["redemption_type"]
+          p_user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "ta" | "student"
+      redemption_status: "pending" | "completed" | "rejected"
+      redemption_type: "course_unlock" | "coupon" | "badge"
+      referral_status:
+        | "pending"
+        | "enrolled_free"
+        | "enrolled_paid"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -546,6 +800,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "ta", "student"],
+      redemption_status: ["pending", "completed", "rejected"],
+      redemption_type: ["course_unlock", "coupon", "badge"],
+      referral_status: [
+        "pending",
+        "enrolled_free",
+        "enrolled_paid",
+        "cancelled",
+      ],
     },
   },
 } as const

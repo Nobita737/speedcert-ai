@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Benefits from "@/components/Benefits";
@@ -8,6 +10,16 @@ import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 
 const Index = () => {
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Capture referral code from URL
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('referralCode', refCode);
+    }
+  }, [searchParams]);
+
   return (
     <div className="min-h-screen">
       <Navbar />

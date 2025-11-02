@@ -22,6 +22,7 @@ serve(async (req) => {
       phone,
       preferredTrack,
       paymentProvider,
+      referralCode,
       price
     } = await req.json();
 
@@ -109,6 +110,29 @@ serve(async (req) => {
       });
 
     if (paymentError) throw paymentError;
+
+    // Track referral if code provided
+    if (referralCode) {
+      try {
+        const trackResponse = await fetch(`${supabaseUrl}/functions/v1/track-referral`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({
+            referralCode: referralCode,
+            refereeUserId: authData.user.id
+          })
+        });
+        
+        const trackData = await trackResponse.json();
+        console.log('Referral tracking result:', trackData);
+      } catch (trackError) {
+        console.error('Error tracking referral:', trackError);
+        // Don't fail signup if referral tracking fails
+      }
+    }
 
     return new Response(
       JSON.stringify({

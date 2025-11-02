@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ const enrollmentSchema = z.object({
   college: z.string().optional(),
   year: z.string().optional(),
   phone: z.string().optional(),
+  referralCode: z.string().optional(),
   preferredTrack: z.enum(["nlp", "cv", "tabular", "other"]),
   paymentProvider: z.enum(["razorpay", "stripe"]),
   commitment: z.boolean().refine(val => val === true, "You must confirm your commitment"),
@@ -38,12 +39,28 @@ interface EnrollmentDialogProps {
 export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  
+  // Check for stored referral code
+  const storedReferralCode = typeof window !== 'undefined' ? localStorage.getItem('referralCode') || '' : '';
+  
   const [formData, setFormData] = useState<Partial<EnrollmentFormData>>({
     preferredTrack: "nlp",
     paymentProvider: "razorpay",
     commitment: false,
+    referralCode: storedReferralCode,
   });
   const [errors, setErrors] = useState<Partial<Record<keyof EnrollmentFormData, string>>>({});
+  const [referralValidation, setReferralValidation] = useState<{loading: boolean, valid: boolean | null, referrerName?: string}>({
+    loading: false,
+    valid: null
+  });
+
+  // Validate referral code if pre-filled
+  useEffect(() => {
+    if (storedReferralCode) {
+      validateReferralCode(storedReferralCode);
+    }
+  }, []);
 
   const getPasswordStrength = (password: string) => {
     if (!password) return 0;
@@ -56,6 +73,31 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
   };
 
   const passwordStrength = getPasswordStrength(formData.password || "");
+
+  const validateReferralCode = async (code: string) => {
+    if (!code || code.length < 3) {
+      setReferralValidation({ loading: false, valid: null });
+      return;
+    }
+
+    setReferralValidation({ loading: true, valid: null });
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-referral', {
+        body: { referralCode: code }
+      });
+
+      if (error) throw error;
+
+      if (data.valid) {
+        setReferralValidation({ loading: false, valid: true, referrerName: data.referrer.name });
+      } else {
+        setReferralValidation({ loading: false, valid: false });
+      }
+    } catch (err) {
+      setReferralValidation({ loading: false, valid: false });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +119,7 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
           phone: validated.phone,
           preferredTrack: validated.preferredTrack,
           paymentProvider: validated.paymentProvider,
+          referralCode: validated.referralCode,
           price: 1199,
         }
       });
@@ -281,6 +324,38 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
               onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
               placeholder="Optional"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+            <div className="relative">
+              <Input
+                id="referralCode"
+                value={formData.referralCode || ""}
+                onChange={e => {
+                  const value = e.target.value.toUpperCase();
+                  setFormData(prev => ({ ...prev, referralCode: value }));
+                }}
+                onBlur={e => validateReferralCode(e.target.value)}
+                placeholder="Enter referral code"
+                className="pr-10"
+              />
+              {referralValidation.loading && (
+                <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-muted-foreground" />
+              )}
+              {!referralValidation.loading && referralValidation.valid === true && (
+                <Check className="absolute right-3 top-3 w-4 h-4 text-green-500" />
+              )}
+              {!referralValidation.loading && referralValidation.valid === false && formData.referralCode && (
+                <X className="absolute right-3 top-3 w-4 h-4 text-destructive" />
+              )}
+            </div>
+            {referralValidation.valid === true && referralValidation.referrerName && (
+              <p className="text-sm text-green-600">✓ Referred by {referralValidation.referrerName}</p>
+            )}
+            {referralValidation.valid === false && formData.referralCode && (
+              <p className="text-sm text-destructive">Invalid or inactive referral code</p>
+            )}
           </div>
 
           <div className="space-y-2">
