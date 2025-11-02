@@ -55,7 +55,7 @@ const Hero = () => {
               size="xl" 
               variant="accent"
               className="group"
-              onClick={() => setEnrollmentOpen(true)}
+              onClick={() => setEnrollmentOpen(false)}
             >
               Enroll Now — ₹999
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
