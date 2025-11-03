@@ -19,58 +19,58 @@ const Hero = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full mb-6 animate-slide-up">
             <Zap className="w-4 h-4" />
-            <span className="text-sm font-medium">Flat Price: ₹999 — One-time payment</span>
+            <span className="text-sm font-medium">Flat Price: ₹999 (One-time payment)</span>
           </div>
           
           {/* Main heading */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-            Get Certified in AI
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight px-4">
+            <span className="inline-block">Get Certified in AI</span>
             <span className="block mt-2 bg-gradient-to-r from-accent to-white bg-clip-text text-transparent">
               3 Weeks, Zero Code
             </span>
           </h1>
           
           {/* Subheading */}
-          <p className="text-xl sm:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Learn how AI works behind the scenes, master the industry tools used by engineers and product teams, and deliver a resume-ready project — no machine learning code required.
+          <p className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed px-4">
+            Learn how AI works behind the scenes, master the industry tools used by engineers and product teams, and deliver a resume-ready project (no machine learning code required).
           </p>
           
           {/* Key benefits */}
-          <div className="flex flex-wrap justify-center gap-6 mb-10">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mb-10 px-4">
             {[
               { icon: CheckCircle2, text: "Week 1: How AI works" },
               { icon: Award, text: "Week 2: Hands-on with 14 tools" },
               { icon: CheckCircle2, text: "Week 3: Capstone project" },
             ].map((item, index) => (
-              <div key={index} className="flex items-center gap-2 text-white/95 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
-                <item.icon className="w-5 h-5 text-accent" />
-                <span className="font-medium">{item.text}</span>
+              <div key={index} className="flex items-center gap-2 text-white/95 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base">
+                <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-accent flex-shrink-0" />
+                <span className="font-medium whitespace-nowrap">{item.text}</span>
               </div>
             ))}
           </div>
           
           {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
             <Button 
               size="xl" 
               variant="accent"
-              className="group"
-              onClick={() => setEnrollmentOpen(false)}
+              className="group w-full sm:w-auto"
+              onClick={() => setEnrollmentOpen(true)}
             >
-              Enroll Now — ₹999
+              Enroll Now ₹999
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 
               size="xl" 
               variant="outline"
-              className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-foreground"
+              className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-foreground w-full sm:w-auto"
             >
               Download Syllabus (PDF)
             </Button>
           </div>
           
           {/* Trust indicators */}
-          <div className="mt-12 text-white/80 text-sm">
+          <div className="mt-12 text-white/80 text-sm px-4">
             <p className="mb-2">Certificate on completion • Resume-ready project • No coding required</p>
           </div>
         </div>

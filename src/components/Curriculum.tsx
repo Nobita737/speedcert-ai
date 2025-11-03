@@ -92,8 +92,8 @@ const weekData = [
         title: "Tools 1 & 2",
         duration: "~30 mins",
         topics: [
-          "Tool 1: Developer assistant (cursor-style tool) — task: create snippet/test plan screenshot 📤",
-          "Tool 2: Prompt engineering with chat assistants — task: craft 3 optimized prompts 📤"
+          "Tool 1: Developer assistant (cursor-style tool) - task: create snippet/test plan screenshot 📤",
+          "Tool 2: Prompt engineering with chat assistants - task: craft 3 optimized prompts 📤"
         ],
         hasDeliverable: true,
       },
@@ -102,8 +102,8 @@ const weekData = [
         title: "Tools 3 & 4",
         duration: "~30 mins",
         topics: [
-          "Tool 3: Code-generation assistant — task: generate a helper script example 📤",
-          "Tool 4: UI/UX AI plugin — task: export a mockup image 📤"
+          "Tool 3: Code-generation assistant - task: generate a helper script example 📤",
+          "Tool 4: UI/UX AI plugin - task: export a mockup image 📤"
         ],
         hasDeliverable: true,
       },
@@ -112,8 +112,8 @@ const weekData = [
         title: "Tools 5 & 6",
         duration: "~30 mins",
         topics: [
-          "Tool 5: Image generation platform — task: produce 3 designs (upload) 📤",
-          "Tool 6: Video generation tool — task: create a 15–30s clip (upload or link) 📤"
+          "Tool 5: Image generation platform - task: produce 3 designs (upload) 📤",
+          "Tool 6: Video generation tool - task: create a 15-30s clip (upload or link) 📤"
         ],
         hasDeliverable: true,
       },
@@ -122,8 +122,8 @@ const weekData = [
         title: "Tools 7 & 8",
         duration: "~30 mins",
         topics: [
-          "Tool 7: Voice & audio synthesis — task: produce a 30s voice clip 📤",
-          "Tool 8: Automation/orchestration (n8n/Zapier-style) — task: build and screenshot a workflow 📤"
+          "Tool 7: Voice & audio synthesis - task: produce a 30s voice clip 📤",
+          "Tool 8: Automation/orchestration (n8n/Zapier-style) - task: build and screenshot a workflow 📤"
         ],
         hasDeliverable: true,
       },
@@ -132,8 +132,8 @@ const weekData = [
         title: "Tools 9 & 10",
         duration: "~30 mins",
         topics: [
-          "Tool 9: No-code data preparation/analysis tool — task: summary CSV or screenshot 📤",
-          "Tool 10: Documentation & summarization tool — task: generate a concise report 📤"
+          "Tool 9: No-code data preparation/analysis tool - task: summary CSV or screenshot 📤",
+          "Tool 10: Documentation & summarization tool - task: generate a concise report 📤"
         ],
         hasDeliverable: true,
       },
@@ -142,8 +142,8 @@ const weekData = [
         title: "Tools 11 & 12",
         duration: "~30 mins",
         topics: [
-          "Tool 11: Test & QA automation assistant — task: generate test cases or checklist 📤",
-          "Tool 12: Presentation & pitch generation tool — task: export 3 slides 📤"
+          "Tool 11: Test & QA automation assistant - task: generate test cases or checklist 📤",
+          "Tool 12: Presentation & pitch generation tool - task: export 3 slides 📤"
         ],
         hasDeliverable: true,
       },
@@ -152,8 +152,8 @@ const weekData = [
         title: "Tools 13 & 14",
         duration: "~30 mins",
         topics: [
-          "Tool 13: Monitoring & observability primer tooling — task: annotate metric screenshot 📤",
-          "Tool 14: Ethics & bias detection tooling (practical check) — task: produce a bias report summary 📤"
+          "Tool 13: Monitoring & observability primer tooling - task: annotate metric screenshot 📤",
+          "Tool 14: Ethics & bias detection tooling (practical check) - task: produce a bias report summary 📤"
         ],
         hasDeliverable: true,
       },
@@ -202,7 +202,7 @@ const Curriculum = () => {
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-            3-Week Curriculum — Learn, Apply, Certify
+            3-Week Curriculum: Learn, Apply, Certify
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Structured, intensive learning: Week 1 explains the backend; Week 2 is tool-focused; Week 3 is a project that becomes a resume-ready artifact.

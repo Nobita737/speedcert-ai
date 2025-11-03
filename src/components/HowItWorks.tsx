@@ -11,19 +11,19 @@ const steps = [
   {
     number: "02",
     icon: BookOpen,
-    title: "Week 1 — Learn",
+    title: "Week 1: Learn",
     description: "Foundations: how models work, data pipelines, training concepts, inference, and AI system architecture.",
   },
   {
     number: "03",
     icon: Code,
-    title: "Week 2 — Build with Tools",
+    title: "Week 2: Build with Tools",
     description: "Daily hands-on sessions with 14 tools (2 tools per day for 7 days). Practical checklists and small deliverables.",
   },
   {
     number: "04",
     icon: Award,
-    title: "Week 3 — Capstone Project & Certification",
+    title: "Week 3: Capstone Project & Certification",
     description: "Choose or propose a real-world use case, implement it using AI tools (no code), submit, and get reviewed. Passing students receive two certificates.",
   },
 ];

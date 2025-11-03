@@ -15,7 +15,7 @@ const faqs = [
   },
   {
     question: "Is the certificate verifiable by employers?",
-    answer: "Yes — each certificate includes a unique ID and a verification URL/QR code where employers can confirm authenticity.",
+    answer: "Yes. Each certificate includes a unique ID and a verification URL/QR code where employers can confirm authenticity.",
   },
   {
     question: "When does Week 3 unlock?",
@@ -27,7 +27,7 @@ const faqs = [
   },
   {
     question: "What if I need a refund?",
-    answer: "Refunds are handled per the platform policy — contact support for details on refund requests and eligibility.",
+    answer: "Refunds are handled per the platform policy. Contact support for details on refund requests and eligibility.",
   },
   {
     question: "Will this improve my job prospects?",

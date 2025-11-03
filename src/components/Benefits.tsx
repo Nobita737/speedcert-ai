@@ -5,12 +5,12 @@ const benefits = [
   {
     icon: BookOpen,
     title: "Deep Fundamentals (Week 1)",
-    description: "Understand how AI models are designed, trained and deployed — the backend concepts that power modern AI.",
+    description: "Understand how AI models are designed, trained and deployed: the backend concepts that power modern AI.",
   },
   {
     icon: Zap,
     title: "Tool-Driven Learning (Week 2)",
-    description: "Master 14 industry tools and learn how to combine them to solve real problems — no coding required.",
+    description: "Master 14 industry tools and learn how to combine them to solve real problems (no coding required).",
   },
   {
     icon: Code,
@@ -20,12 +20,12 @@ const benefits = [
   {
     icon: TrendingUp,
     title: "Practical Career Outcomes",
-    description: "Build demonstrable skills and artifacts employers recognize — from automation to AI-driven design.",
+    description: "Build demonstrable skills and artifacts employers recognize: from automation to AI-driven design.",
   },
   {
     icon: Award,
     title: "Hands-On Without Coding",
-    description: "All assignments and the capstone use GUI-based tools, automations and integrations — focus on outcomes, not syntax.",
+    description: "All assignments and the capstone use GUI-based tools, automations and integrations. Focus on outcomes, not syntax.",
   },
   {
     icon: Shield,

@@ -424,7 +424,7 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
                 Processing...
               </>
             ) : (
-              <>Pay & Enroll — ₹1,199</>
+              <>Pay & Enroll ₹1,199</>
             )}
           </Button>
 

@@ -70,7 +70,7 @@ const Pricing = () => {
               className="w-full mb-4"
               onClick={() => setEnrollmentOpen(true)}
             >
-              Enroll Now — ₹999
+              Enroll Now ₹999
             </Button>
             
             <p className="text-center text-sm text-muted-foreground">
