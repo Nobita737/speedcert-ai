@@ -16,6 +16,15 @@ const Hero = () => {
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-5xl mx-auto text-center animate-fade-in">
+          {/* Promo Banner */}
+          <div className="mb-4 animate-bounce-slow">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg">
+              <span className="text-xs sm:text-sm md:text-base font-bold">
+                🎉 Get up to ₹500 OFF! Use code: <span className="bg-white/20 px-2 py-1 rounded ml-1">LAUNCH500</span>
+              </span>
+            </div>
+          </div>
+          
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full mb-6 animate-slide-up">
             <Zap className="w-4 h-4" />

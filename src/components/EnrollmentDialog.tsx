@@ -21,6 +21,7 @@ const enrollmentSchema = z.object({
   year: z.string().optional(),
   phone: z.string().optional(),
   referralCode: z.string().optional(),
+  couponCode: z.string().optional(),
   preferredTrack: z.enum(["nlp", "cv", "tabular", "other"]),
   paymentProvider: z.enum(["razorpay", "stripe"]),
   commitment: z.boolean().refine(val => val === true, "You must confirm your commitment"),
@@ -40,25 +41,44 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
-  // Check for stored referral code
+  // Check for stored referral and coupon codes
   const storedReferralCode = typeof window !== 'undefined' ? localStorage.getItem('referralCode') || '' : '';
+  const storedCouponCode = typeof window !== 'undefined' ? localStorage.getItem('couponCode') || '' : '';
   
   const [formData, setFormData] = useState<Partial<EnrollmentFormData>>({
     preferredTrack: "nlp",
     paymentProvider: "razorpay",
     commitment: false,
     referralCode: storedReferralCode,
+    couponCode: storedCouponCode,
   });
   const [errors, setErrors] = useState<Partial<Record<keyof EnrollmentFormData, string>>>({});
   const [referralValidation, setReferralValidation] = useState<{loading: boolean, valid: boolean | null, referrerName?: string}>({
     loading: false,
     valid: null
   });
+  const [couponValidation, setCouponValidation] = useState<{
+    loading: boolean, 
+    valid: boolean | null, 
+    discount?: {
+      amount: number,
+      finalPrice: number,
+      originalPrice: number,
+      message: string
+    },
+    error?: string
+  }>({
+    loading: false,
+    valid: null
+  });
 
-  // Validate referral code if pre-filled
+  // Validate referral and coupon codes if pre-filled
   useEffect(() => {
     if (storedReferralCode) {
       validateReferralCode(storedReferralCode);
+    }
+    if (storedCouponCode) {
+      validateCouponCode(storedCouponCode);
     }
   }, []);
 
@@ -99,6 +119,46 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
     }
   };
 
+  const validateCouponCode = async (code: string) => {
+    if (!code || code.length < 3) {
+      setCouponValidation({ loading: false, valid: null });
+      return;
+    }
+
+    setCouponValidation({ loading: true, valid: null });
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-coupon', {
+        body: { 
+          couponCode: code,
+          originalAmount: 999
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.valid) {
+        setCouponValidation({ 
+          loading: false, 
+          valid: true, 
+          discount: data.discount 
+        });
+      } else {
+        setCouponValidation({ 
+          loading: false, 
+          valid: false,
+          error: data.error 
+        });
+      }
+    } catch (err: any) {
+      setCouponValidation({ 
+        loading: false, 
+        valid: false,
+        error: 'Failed to validate coupon'
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -120,7 +180,10 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
           preferredTrack: validated.preferredTrack,
           paymentProvider: validated.paymentProvider,
           referralCode: validated.referralCode,
-          price: 1199,
+          couponCode: validated.couponCode,
+          price: couponValidation.valid && couponValidation.discount 
+            ? couponValidation.discount.finalPrice 
+            : 999,
         }
       });
 
@@ -359,6 +422,52 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="couponCode">Coupon Code (Optional)</Label>
+            <div className="relative">
+              <Input
+                id="couponCode"
+                value={formData.couponCode || ""}
+                onChange={e => {
+                  const value = e.target.value.toUpperCase();
+                  setFormData(prev => ({ ...prev, couponCode: value }));
+                }}
+                onBlur={e => validateCouponCode(e.target.value)}
+                placeholder="Enter coupon code (e.g., LAUNCH500)"
+                className="pr-10"
+              />
+              {couponValidation.loading && (
+                <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-muted-foreground" />
+              )}
+              {!couponValidation.loading && couponValidation.valid === true && (
+                <Check className="absolute right-3 top-3 w-4 h-4 text-green-500" />
+              )}
+              {!couponValidation.loading && couponValidation.valid === false && formData.couponCode && (
+                <X className="absolute right-3 top-3 w-4 h-4 text-destructive" />
+              )}
+            </div>
+            
+            {/* Success message with discount */}
+            {couponValidation.valid === true && couponValidation.discount && (
+              <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                  ✓ {couponValidation.discount.message}
+                </p>
+                <p className="text-xs text-green-700 dark:text-green-400 mt-1">
+                  Original: ₹{couponValidation.discount.originalPrice} 
+                  → Final: ₹{couponValidation.discount.finalPrice}
+                </p>
+              </div>
+            )}
+            
+            {/* Error message */}
+            {couponValidation.valid === false && formData.couponCode && (
+              <p className="text-sm text-destructive">
+                {couponValidation.error || "Invalid or expired coupon code"}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <Label>Preferred Track *</Label>
             <RadioGroup
               value={formData.preferredTrack}
@@ -424,7 +533,17 @@ export function EnrollmentDialog({ open, onOpenChange }: EnrollmentDialogProps) 
                 Processing...
               </>
             ) : (
-              <>Pay & Enroll ₹1,199</>
+              <>
+                Pay & Enroll 
+                {couponValidation.valid && couponValidation.discount ? (
+                  <>
+                    <span className="line-through ml-2 opacity-70">₹999</span>
+                    <span className="ml-2 font-bold">₹{couponValidation.discount.finalPrice}</span>
+                  </>
+                ) : (
+                  <span className="ml-2">₹999</span>
+                )}
+              </>
             )}
           </Button>
 

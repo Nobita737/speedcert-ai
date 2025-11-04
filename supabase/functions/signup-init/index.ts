@@ -23,6 +23,7 @@ serve(async (req) => {
       preferredTrack,
       paymentProvider,
       referralCode,
+      couponCode,
       price
     } = await req.json();
 
@@ -52,6 +53,28 @@ serve(async (req) => {
 
     if (authError) throw authError;
 
+    // Validate and apply coupon if provided
+    let finalAmount = price || 999;
+    let couponDiscount = 0;
+    let couponId = null;
+
+    if (couponCode) {
+      const { data: couponValidation, error: couponError } = await supabase.rpc('validate_coupon', {
+        p_code: couponCode.toUpperCase(),
+        p_user_id: authData.user.id,
+        p_amount: price || 999
+      });
+
+      if (!couponError && couponValidation?.valid) {
+        couponDiscount = couponValidation.discount_amount;
+        finalAmount = couponValidation.final_price;
+        couponId = couponValidation.coupon_id;
+        console.log(`Coupon applied: ${couponCode}, Discount: ₹${couponDiscount}`);
+      } else {
+        console.log(`Coupon validation failed: ${couponCode}`);
+      }
+    }
+
     // Create payment order
     let providerPayload;
     
@@ -66,9 +89,14 @@ serve(async (req) => {
           'Authorization': `Basic ${btoa(`${razorpayKey}:${razorpaySecret}`)}`,
         },
         body: JSON.stringify({
-          amount: price * 100, // paise
+          amount: finalAmount * 100, // paise
           currency: 'INR',
           receipt: `rcpt_${authData.user.id}`,
+          notes: {
+            original_amount: price || 999,
+            discount: couponDiscount,
+            coupon_code: couponCode || null
+          }
         }),
       });
       
@@ -88,9 +116,12 @@ serve(async (req) => {
           'cancel_url': `${supabaseUrl}/?canceled=true`,
           'line_items[0][price_data][currency]': 'inr',
           'line_items[0][price_data][product_data][name]': 'AI Certification Program',
-          'line_items[0][price_data][unit_amount]': `${price * 100}`,
+          'line_items[0][price_data][unit_amount]': `${finalAmount * 100}`,
           'line_items[0][quantity]': '1',
           'client_reference_id': authData.user.id,
+          'metadata[original_amount]': (price || 999).toString(),
+          'metadata[discount]': couponDiscount.toString(),
+          'metadata[coupon_code]': couponCode || '',
         }).toString(),
       });
       
@@ -104,7 +135,7 @@ serve(async (req) => {
         user_id: authData.user.id,
         provider: paymentProvider,
         provider_order_id: providerPayload.id,
-        amount: price,
+        amount: finalAmount,
         currency: 'INR',
         status: 'pending',
       });

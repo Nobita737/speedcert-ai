@@ -13,10 +13,15 @@ const Index = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // Capture referral code from URL
+    // Capture referral and coupon codes from URL
     const refCode = searchParams.get('ref');
+    const couponCode = searchParams.get('coupon');
+    
     if (refCode) {
       localStorage.setItem('referralCode', refCode);
+    }
+    if (couponCode) {
+      localStorage.setItem('couponCode', couponCode);
     }
   }, [searchParams]);
 

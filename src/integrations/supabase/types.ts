@@ -49,6 +49,116 @@ export type Database = {
           },
         ]
       }
+      coupon_usage: {
+        Row: {
+          coupon_id: string | null
+          discount_applied: number
+          final_price: number
+          id: string
+          original_price: number
+          payment_id: string | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          coupon_id?: string | null
+          discount_applied: number
+          final_price: number
+          id?: string
+          original_price: number
+          payment_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          coupon_id?: string | null
+          discount_applied?: number
+          final_price?: number
+          id?: string
+          original_price?: number
+          payment_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean | null
+          max_discount: number | null
+          min_purchase_amount: number | null
+          updated_at: string | null
+          usage_count: number | null
+          usage_limit: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          is_active?: boolean | null
+          max_discount?: number | null
+          min_purchase_amount?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean | null
+          max_discount?: number | null
+          min_purchase_amount?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           description: string | null
@@ -641,6 +751,16 @@ export type Database = {
       }
     }
     Functions: {
+      apply_coupon: {
+        Args: {
+          p_coupon_id: string
+          p_discount: number
+          p_original_price: number
+          p_payment_id: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       check_redemption_eligibility: {
         Args: { p_points_needed: number; p_user_id: string }
         Returns: boolean
@@ -661,6 +781,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      validate_coupon: {
+        Args: { p_amount: number; p_code: string; p_user_id: string }
+        Returns: Json
       }
     }
     Enums: {

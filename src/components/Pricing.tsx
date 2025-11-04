@@ -44,6 +44,13 @@ const Pricing = () => {
               </Badge>
             </div>
 
+            {/* Coupon Highlight */}
+            <div className="mb-6 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                💰 Use coupon code <strong>LAUNCH500</strong> at checkout to get ₹500 off!
+              </p>
+            </div>
+
             <div className="mb-8">
               <div className="flex items-end gap-2">
                 <span className="text-5xl sm:text-6xl font-bold bg-gradient-primary bg-clip-text text-transparent">
