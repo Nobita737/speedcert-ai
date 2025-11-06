@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ export default function Auth() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -34,30 +33,15 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-          },
-        });
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Check your email for verification link",
-        });
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Signed in successfully",
-        });
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Signed in successfully",
+      });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -74,10 +58,10 @@ export default function Auth() {
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            {isSignUp ? "Create Account" : "Welcome Back"}
+            Welcome Back
           </h1>
           <p className="text-muted-foreground">
-            {isSignUp ? "Sign up to start your AI journey" : "Sign in to continue learning"}
+            Sign in to continue your AI journey
           </p>
         </div>
 
@@ -114,23 +98,21 @@ export default function Auth() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Signing in...
               </>
             ) : (
-              <>{isSignUp ? "Sign Up" : "Sign In"}</>
+              "Sign In"
             )}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
+          <Link
+            to="/signup"
             className="text-sm text-primary hover:underline"
           >
-            {isSignUp
-              ? "Already have an account? Sign in"
-              : "Don't have an account? Sign up"}
-          </button>
+            Don't have an account? Sign up
+          </Link>
         </div>
       </Card>
     </div>

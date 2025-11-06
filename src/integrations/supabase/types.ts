@@ -250,6 +250,7 @@ export type Database = {
           name: string
           phone: string | null
           preferred_track: string | null
+          profile_completed: boolean | null
           updated_at: string | null
           year: string | null
         }
@@ -265,6 +266,7 @@ export type Database = {
           name: string
           phone?: string | null
           preferred_track?: string | null
+          profile_completed?: boolean | null
           updated_at?: string | null
           year?: string | null
         }
@@ -280,6 +282,7 @@ export type Database = {
           name?: string
           phone?: string | null
           preferred_track?: string | null
+          profile_completed?: boolean | null
           updated_at?: string | null
           year?: string | null
         }

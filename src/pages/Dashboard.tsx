@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProfileCompletionModal } from "@/components/ProfileCompletionModal";
+import { PaymentDialog } from "@/components/PaymentDialog";
 import { 
   BookOpen, 
   Clock, 
@@ -17,7 +19,7 @@ import {
   Award,
   Loader2,
   Gift,
-  Users
+  CreditCard
 } from "lucide-react";
 
 interface DashboardData {
@@ -32,11 +34,13 @@ interface DashboardData {
 }
 
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
   const [referralCode, setReferralCode] = useState<string>("");
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -44,6 +48,13 @@ export default function Dashboard() {
       loadReferralCode();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Check if profile is complete
+    if (data?.profile && !data.profile.profile_completed) {
+      setShowProfileModal(true);
+    }
+  }, [data]);
 
   const loadReferralCode = async () => {
     try {
@@ -74,6 +85,19 @@ export default function Dashboard() {
     }
   };
 
+  const handleProfileComplete = () => {
+    setShowProfileModal(false);
+    loadDashboardData();
+  };
+
+  const handleEnrollNow = () => {
+    if (!data?.profile.profile_completed) {
+      setShowProfileModal(true);
+    } else {
+      setShowPaymentDialog(true);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -99,15 +123,40 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Welcome back, {data.profile.name}!
-          </h1>
-          <p className="text-muted-foreground">
-            Let's continue your AI certification journey
-          </p>
+        {/* Header with Logout */}
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+              Welcome back, {data.profile.name}!
+            </h1>
+            <p className="text-muted-foreground">
+              Let's continue your AI certification journey
+            </p>
+          </div>
+          <Button variant="outline" onClick={signOut}>
+            Sign Out
+          </Button>
         </div>
+
+        {/* Enrollment CTA if not enrolled */}
+        {!data.profile.enrolled && (
+          <Card className="p-6 mb-8 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <CreditCard className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Complete Your Enrollment</h3>
+                  <p className="text-sm text-muted-foreground">Get full access to all course materials and certification</p>
+                </div>
+              </div>
+              <Button onClick={handleEnrollNow} size="lg" className="bg-gradient-primary">
+                Enroll Now
+              </Button>
+            </div>
+          </Card>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -258,6 +307,19 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modals */}
+      <ProfileCompletionModal 
+        open={showProfileModal} 
+        onComplete={handleProfileComplete}
+        userName={data.profile.name}
+        userId={user!.id}
+      />
+      <PaymentDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        userProfile={data.profile}
+      />
     </div>
   );
 }

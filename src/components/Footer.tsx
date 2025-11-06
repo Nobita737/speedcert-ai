@@ -57,8 +57,8 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="pt-8 border-t border-background/20 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-background/70 text-sm">
-            © {currentYear} AI Certification Platform. All rights reserved.
+          <p className="text-background/70 text-sm font-medium">
+            Powered by Campayn
           </p>
           <div className="flex gap-6 text-sm text-background/70">
             <a href="#" className="hover:text-accent transition-colors">Privacy</a>

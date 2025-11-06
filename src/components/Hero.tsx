@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Award, Zap } from "lucide-react";
-import { EnrollmentDialog } from "./EnrollmentDialog";
+import { ArrowRight, CheckCircle2, Award } from "lucide-react";
 
 const Hero = () => {
-  const [enrollmentOpen, setEnrollmentOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-hero">
@@ -17,18 +19,12 @@ const Hero = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-5xl mx-auto text-center animate-fade-in">
           {/* Promo Banner */}
-          <div className="mb-4 animate-bounce-slow">
+          <div className="mb-6 animate-bounce-slow">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg">
               <span className="text-xs sm:text-sm md:text-base font-bold">
                 🎉 Get up to ₹500 OFF! Use code: <span className="bg-white/20 px-2 py-1 rounded ml-1">LAUNCH500</span>
               </span>
             </div>
-          </div>
-          
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full mb-6 animate-slide-up">
-            <Zap className="w-4 h-4" />
-            <span className="text-sm font-medium">Flat Price: ₹999 (One-time payment)</span>
           </div>
           
           {/* Main heading */}
@@ -64,9 +60,9 @@ const Hero = () => {
               size="xl" 
               variant="accent"
               className="group w-full sm:w-auto"
-              onClick={() => setEnrollmentOpen(true)}
+              onClick={() => user ? navigate('/dashboard') : navigate('/signup')}
             >
-              Enroll Now ₹999
+              {user ? 'Go to Dashboard' : 'Enroll Now'}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 
@@ -84,8 +80,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-
-      <EnrollmentDialog open={enrollmentOpen} onOpenChange={setEnrollmentOpen} />
     </section>
   );
 };

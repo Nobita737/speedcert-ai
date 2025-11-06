@@ -1,21 +1,24 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Award } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <Award className="w-5 h-5 text-white" />
-            </div>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+            <img src={logo} alt="GetAICertified" className="h-10 w-auto" />
             <span className="font-bold text-lg bg-gradient-primary bg-clip-text text-transparent">
-              AI Cert
+              GetAICertified
             </span>
           </div>
 
@@ -37,9 +40,15 @@ const Navbar = () => {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Button variant="hero" size="default">
-              Enroll Now
-            </Button>
+            {user ? (
+              <Button variant="hero" size="default" onClick={() => navigate('/dashboard')}>
+                Dashboard
+              </Button>
+            ) : (
+              <Button variant="hero" size="default" onClick={() => navigate('/signup')}>
+                Enroll Now
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -79,9 +88,15 @@ const Navbar = () => {
               Verify Certificate
             </a>
             <div className="pt-2">
-              <Button variant="hero" size="default" className="w-full">
-                Enroll Now
-              </Button>
+              {user ? (
+                <Button variant="hero" size="default" className="w-full" onClick={() => navigate('/dashboard')}>
+                  Dashboard
+                </Button>
+              ) : (
+                <Button variant="hero" size="default" className="w-full" onClick={() => navigate('/signup')}>
+                  Enroll Now
+                </Button>
+              )}
             </div>
           </div>
         )}
