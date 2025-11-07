@@ -27,3 +27,9 @@ verify_jwt = true
 
 [functions.validate-coupon]
 verify_jwt = false
+
+[functions.complete-profile]
+verify_jwt = true
+
+[functions.initiate-payment]
+verify_jwt = true
