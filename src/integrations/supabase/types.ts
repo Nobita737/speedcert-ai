@@ -245,7 +245,7 @@ export type Database = {
           created_at: string | null
           email: string
           enrolled: boolean | null
-          github_url: string
+          github_url: string | null
           id: string
           name: string
           phone: string | null
@@ -261,7 +261,7 @@ export type Database = {
           created_at?: string | null
           email: string
           enrolled?: boolean | null
-          github_url: string
+          github_url?: string | null
           id: string
           name: string
           phone?: string | null
@@ -277,7 +277,7 @@ export type Database = {
           created_at?: string | null
           email?: string
           enrolled?: boolean | null
-          github_url?: string
+          github_url?: string | null
           id?: string
           name?: string
           phone?: string | null
