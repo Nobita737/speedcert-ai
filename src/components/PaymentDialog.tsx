@@ -114,7 +114,7 @@ export function PaymentDialog({ open, onOpenChange, userProfile }: PaymentDialog
       const { data, error } = await supabase.functions.invoke('initiate-payment', {
         body: {
           userId: userProfile.id,
-          paymentProvider: validated.paymentProvider,
+          paymentProvider: 'razorpay',
           couponCode: validated.couponCode,
           price: finalPrice,
         }
@@ -123,12 +123,11 @@ export function PaymentDialog({ open, onOpenChange, userProfile }: PaymentDialog
       if (error) throw error;
 
       if (data.success) {
-        // Launch payment flow
-        if (validated.paymentProvider === 'razorpay') {
-          launchRazorpay(data.payment.providerPayload);
-        } else {
-          launchStripe(data.payment.providerPayload);
-        }
+        // Store pending payment ID for return handling
+        localStorage.setItem('pending_payment_id', data.payment.id);
+        
+        // Redirect to Razorpay.me payment link
+        window.location.href = data.payment.providerPayload.paymentLinkUrl;
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -151,58 +150,6 @@ export function PaymentDialog({ open, onOpenChange, userProfile }: PaymentDialog
     }
   };
 
-  const launchRazorpay = (orderData: any) => {
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: orderData.amount,
-      currency: orderData.currency,
-      name: "GetAICertified",
-      description: "2-Week AI Certification Program",
-      order_id: orderData.id,
-      handler: async function (response: any) {
-        try {
-          const { error } = await supabase.functions.invoke('complete-enrollment', {
-            body: {
-              userId: userProfile.id,
-              paymentProvider: 'razorpay',
-              paymentId: response.razorpay_payment_id,
-              orderId: response.razorpay_order_id,
-              signature: response.razorpay_signature,
-            }
-          });
-          
-          if (!error) {
-            toast({
-              title: "Payment Successful!",
-              description: "Welcome to the program",
-            });
-            window.location.href = '/dashboard';
-          }
-        } catch (err) {
-          toast({
-            title: "Payment Verification Failed",
-            description: "Please contact support",
-            variant: "destructive",
-          });
-        }
-      },
-      prefill: {
-        name: userProfile.name,
-        email: userProfile.email,
-        contact: userProfile.phone,
-      },
-      theme: {
-        color: "#8B5CF6"
-      }
-    };
-
-    const razorpay = new (window as any).Razorpay(options);
-    razorpay.open();
-  };
-
-  const launchStripe = (sessionData: any) => {
-    window.location.href = sessionData.url;
-  };
 
   const finalPrice = couponValidation.valid && couponValidation.discount 
     ? couponValidation.discount.finalPrice 
@@ -296,27 +243,6 @@ export function PaymentDialog({ open, onOpenChange, userProfile }: PaymentDialog
             )}
           </div>
 
-          {/* Payment Provider */}
-          <div className="space-y-2">
-            <Label>Payment Method *</Label>
-            <RadioGroup
-              value={formData.paymentProvider}
-              onValueChange={paymentProvider => setFormData(prev => ({ ...prev, paymentProvider: paymentProvider as any }))}
-            >
-              <div className="flex items-center space-x-2 border rounded-lg p-4">
-                <RadioGroupItem value="razorpay" id="razorpay" />
-                <Label htmlFor="razorpay" className="flex-1 cursor-pointer">
-                  Razorpay (Cards, UPI, Wallets, Net Banking)
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 border rounded-lg p-4">
-                <RadioGroupItem value="stripe" id="stripe" />
-                <Label htmlFor="stripe" className="flex-1 cursor-pointer">
-                  Stripe (International Cards)
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
 
           {/* Pricing Summary */}
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">

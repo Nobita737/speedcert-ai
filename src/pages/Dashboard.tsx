@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileCompletionModal } from "@/components/ProfileCompletionModal";
 import { PaymentDialog } from "@/components/PaymentDialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   BookOpen, 
   Clock, 
@@ -36,6 +37,7 @@ interface DashboardData {
 export default function Dashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
   const [referralCode, setReferralCode] = useState<string>("");
@@ -46,6 +48,48 @@ export default function Dashboard() {
     if (user) {
       loadDashboardData();
       loadReferralCode();
+    }
+  }, [user]);
+
+  // Poll for payment completion
+  useEffect(() => {
+    const pendingPaymentId = localStorage.getItem('pending_payment_id');
+    
+    if (pendingPaymentId && user) {
+      let pollCount = 0;
+      const maxPolls = 10; // Poll for 30 seconds (10 x 3 seconds)
+      
+      const interval = setInterval(async () => {
+        pollCount++;
+        
+        try {
+          const { data: payment } = await supabase
+            .from('payments')
+            .select('status')
+            .eq('id', pendingPaymentId)
+            .single();
+          
+          if (payment?.status === 'completed') {
+            localStorage.removeItem('pending_payment_id');
+            clearInterval(interval);
+            
+            // Show success toast
+            toast({
+              title: "Payment Successful! 🎉",
+              description: "Welcome to the AI Certification Program",
+            });
+            
+            // Reload dashboard data
+            loadDashboardData();
+          } else if (pollCount >= maxPolls) {
+            clearInterval(interval);
+          }
+        } catch (error) {
+          console.error('Error polling payment status:', error);
+        }
+      }, 3000);
+      
+      return () => clearInterval(interval);
     }
   }, [user]);
 
