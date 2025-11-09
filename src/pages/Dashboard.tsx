@@ -308,7 +308,20 @@ export default function Dashboard() {
               <p className="text-muted-foreground mb-4">
                 Build your foundation in machine learning and deep learning concepts
               </p>
-              <Button variant="outline" className="gap-2">
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => {
+                  if (!data.profile.enrolled) {
+                    handleEnrollNow();
+                  } else {
+                    toast({
+                      title: "Coming Soon",
+                      description: "Lesson content will be available here",
+                    });
+                  }
+                }}
+              >
                 View Lessons
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -321,7 +334,20 @@ export default function Dashboard() {
               <p className="text-muted-foreground mb-4">
                 Hands-on experience with OpenAI, Gemini, Hugging Face, LangChain, and more
               </p>
-              <Button variant="outline" className="gap-2">
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => {
+                  if (!data.profile.enrolled) {
+                    handleEnrollNow();
+                  } else {
+                    toast({
+                      title: "Coming Soon",
+                      description: "Lab content will be available here",
+                    });
+                  }
+                }}
+              >
                 View Labs
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -335,7 +361,20 @@ export default function Dashboard() {
                 Build a portfolio-ready AI project in your chosen track
               </p>
               {data.projectStatus === 'not_submitted' ? (
-                <Button variant="outline" className="gap-2">
+                <Button 
+                  variant="outline" 
+                  className="gap-2"
+                  onClick={() => {
+                    if (!data.profile.enrolled) {
+                      handleEnrollNow();
+                    } else {
+                      toast({
+                        title: "Coming Soon",
+                        description: "Project workspace will be available here",
+                      });
+                    }
+                  }}
+                >
                   Start Project
                   <ChevronRight className="w-4 h-4" />
                 </Button>
