@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,8 @@ import {
   Award,
   Loader2,
   Gift,
-  CreditCard
+  CreditCard,
+  Settings
 } from "lucide-react";
 
 interface DashboardData {
@@ -36,6 +38,7 @@ interface DashboardData {
 
 export default function Dashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -177,9 +180,17 @@ export default function Dashboard() {
               Let's continue your AI certification journey
             </p>
           </div>
-          <Button variant="outline" onClick={signOut}>
-            Sign Out
-          </Button>
+          <div className="flex gap-2">
+            {isAdmin && (
+              <Button variant="outline" onClick={() => navigate('/admin')}>
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            )}
+            <Button variant="outline" onClick={signOut}>
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         {/* Enrollment CTA if not enrolled */}
