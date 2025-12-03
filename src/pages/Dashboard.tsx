@@ -10,6 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileCompletionModal } from "@/components/ProfileCompletionModal";
 import { PaymentDialog } from "@/components/PaymentDialog";
+import { ProfileMenu } from "@/components/ProfileMenu";
+import { ProfileEditor } from "@/components/ProfileEditor";
+import { WeekLessons } from "@/components/WeekLessons";
+import { CertificateRequestDialog } from "@/components/CertificateRequestDialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   BookOpen, 
@@ -22,7 +26,6 @@ import {
   Loader2,
   Gift,
   CreditCard,
-  Settings
 } from "lucide-react";
 
 interface DashboardData {
@@ -46,6 +49,8 @@ export default function Dashboard() {
   const [referralCode, setReferralCode] = useState<string>("");
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [showCertificateDialog, setShowCertificateDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -54,13 +59,15 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  // Poll for payment completion
+  // Poll for payment/enrollment status changes
   useEffect(() => {
+    if (!user) return;
+
     const pendingPaymentId = localStorage.getItem('pending_payment_id');
     
-    if (pendingPaymentId && user) {
+    if (pendingPaymentId) {
       let pollCount = 0;
-      const maxPolls = 10; // Poll for 30 seconds (10 x 3 seconds)
+      const maxPolls = 10;
       
       const interval = setInterval(async () => {
         pollCount++;
@@ -76,13 +83,11 @@ export default function Dashboard() {
             localStorage.removeItem('pending_payment_id');
             clearInterval(interval);
             
-            // Show success toast
             toast({
               title: "Payment Successful! 🎉",
               description: "Welcome to the AI Certification Program",
             });
             
-            // Reload dashboard data
             loadDashboardData();
           } else if (pollCount >= maxPolls) {
             clearInterval(interval);
@@ -94,10 +99,36 @@ export default function Dashboard() {
       
       return () => clearInterval(interval);
     }
+
+    // Also subscribe to profile changes for instant enrollment updates
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.new && (payload.new as any).enrolled && !(payload.old as any)?.enrolled) {
+            toast({
+              title: "Enrollment Confirmed! 🎉",
+              description: "You now have full access to all course content",
+            });
+            loadDashboardData();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   useEffect(() => {
-    // Check if profile is complete
     if (data?.profile && !data.profile.profile_completed) {
       setShowProfileModal(true);
     }
@@ -145,6 +176,11 @@ export default function Dashboard() {
     }
   };
 
+  const canRequestCertificate = 
+    data?.profile?.enrolled && 
+    data?.lessonsCompleted >= data?.totalLessons && 
+    data?.totalLessons > 0;
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -165,12 +201,14 @@ export default function Dashboard() {
     );
   }
 
-  const progressPercentage = (data.lessonsCompleted / data.totalLessons) * 100;
+  const progressPercentage = data.totalLessons > 0 
+    ? (data.lessonsCompleted / data.totalLessons) * 100 
+    : 0;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header with Logout */}
+        {/* Header with Profile Menu */}
         <div className="mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
@@ -180,17 +218,14 @@ export default function Dashboard() {
               Let's continue your AI certification journey
             </p>
           </div>
-          <div className="flex gap-2">
-            {isAdmin && (
-              <Button variant="outline" onClick={() => navigate('/admin')}>
-                <Settings className="w-4 h-4 mr-2" />
-                Admin
-              </Button>
-            )}
-            <Button variant="outline" onClick={signOut}>
-              Sign Out
-            </Button>
-          </div>
+          <ProfileMenu
+            profile={data.profile}
+            isAdmin={isAdmin || false}
+            canRequestCertificate={canRequestCertificate}
+            onSignOut={signOut}
+            onEditProfile={() => setShowProfileEditor(true)}
+            onRequestCertificate={() => setShowCertificateDialog(true)}
+          />
         </div>
 
         {/* Enrollment CTA if not enrolled */}
@@ -289,7 +324,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Next Action CTA */}
-        {data.nextLesson && (
+        {data.nextLesson && data.profile.enrolled && (
           <Card className="p-6 mb-8 bg-gradient-primary text-white">
             <div className="flex items-center justify-between">
               <div>
@@ -313,91 +348,31 @@ export default function Dashboard() {
             <TabsTrigger value="week3">Week 3: Project</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="week1" className="space-y-4">
-            <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">AI Fundamentals</h3>
-              <p className="text-muted-foreground mb-4">
-                Build your foundation in machine learning and deep learning concepts
-              </p>
-              <Button 
-                variant="outline" 
-                className="gap-2"
-                onClick={() => {
-                  if (!data.profile.enrolled) {
-                    handleEnrollNow();
-                  } else {
-                    toast({
-                      title: "Coming Soon",
-                      description: "Lesson content will be available here",
-                    });
-                  }
-                }}
-              >
-                View Lessons
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Card>
+          <TabsContent value="week1">
+            <WeekLessons
+              week={1}
+              userId={user.id}
+              isEnrolled={data.profile.enrolled}
+              onEnrollmentRequired={handleEnrollNow}
+            />
           </TabsContent>
 
-          <TabsContent value="week2" className="space-y-4">
-            <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">Industry AI Tools</h3>
-              <p className="text-muted-foreground mb-4">
-                Hands-on experience with OpenAI, Gemini, Hugging Face, LangChain, and more
-              </p>
-              <Button 
-                variant="outline" 
-                className="gap-2"
-                onClick={() => {
-                  if (!data.profile.enrolled) {
-                    handleEnrollNow();
-                  } else {
-                    toast({
-                      title: "Coming Soon",
-                      description: "Lab content will be available here",
-                    });
-                  }
-                }}
-              >
-                View Labs
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Card>
+          <TabsContent value="week2">
+            <WeekLessons
+              week={2}
+              userId={user.id}
+              isEnrolled={data.profile.enrolled}
+              onEnrollmentRequired={handleEnrollNow}
+            />
           </TabsContent>
 
-          <TabsContent value="week3" className="space-y-4">
-            <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">Capstone Project</h3>
-              <p className="text-muted-foreground mb-4">
-                Build a portfolio-ready AI project in your chosen track
-              </p>
-              {data.projectStatus === 'not_submitted' ? (
-                <Button 
-                  variant="outline" 
-                  className="gap-2"
-                  onClick={() => {
-                    if (!data.profile.enrolled) {
-                      handleEnrollNow();
-                    } else {
-                      toast({
-                        title: "Coming Soon",
-                        description: "Project workspace will be available here",
-                      });
-                    }
-                  }}
-                >
-                  Start Project
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              ) : data.projectStatus === 'approved' ? (
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-primary" />
-                  <span className="font-semibold">Project Approved!</span>
-                </div>
-              ) : (
-                <Badge variant="secondary">Under Review</Badge>
-              )}
-            </Card>
+          <TabsContent value="week3">
+            <WeekLessons
+              week={3}
+              userId={user.id}
+              isEnrolled={data.profile.enrolled}
+              onEnrollmentRequired={handleEnrollNow}
+            />
           </TabsContent>
         </Tabs>
       </div>
@@ -413,6 +388,21 @@ export default function Dashboard() {
         open={showPaymentDialog}
         onOpenChange={setShowPaymentDialog}
         userProfile={data.profile}
+      />
+      <ProfileEditor
+        open={showProfileEditor}
+        onOpenChange={setShowProfileEditor}
+        userId={user.id}
+        onProfileUpdated={loadDashboardData}
+      />
+      <CertificateRequestDialog
+        open={showCertificateDialog}
+        onOpenChange={setShowCertificateDialog}
+        userId={user.id}
+        userName={data.profile.name}
+        lessonsCompleted={data.lessonsCompleted}
+        totalLessons={data.totalLessons}
+        projectStatus={data.projectStatus}
       />
     </div>
   );
