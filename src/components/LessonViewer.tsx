@@ -11,7 +11,50 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Clock, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
+import { Clock, ExternalLink, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+
+// Convert various video URLs to embeddable format
+function getEmbedUrl(url: string): string {
+  if (!url) return '';
+  
+  // YouTube standard URL: https://www.youtube.com/watch?v=VIDEO_ID
+  const youtubeWatchMatch = url.match(/(?:youtube\.com\/watch\?v=)([^&\s]+)/);
+  if (youtubeWatchMatch) {
+    return `https://www.youtube.com/embed/${youtubeWatchMatch[1]}`;
+  }
+  
+  // YouTube short URL: https://youtu.be/VIDEO_ID
+  const youtubeShortMatch = url.match(/(?:youtu\.be\/)([^?\s]+)/);
+  if (youtubeShortMatch) {
+    return `https://www.youtube.com/embed/${youtubeShortMatch[1]}`;
+  }
+  
+  // YouTube embed URL (already correct)
+  if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  
+  // Google Drive: https://drive.google.com/file/d/FILE_ID/view
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (driveMatch) {
+    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+  }
+  
+  // Vimeo: https://vimeo.com/VIDEO_ID
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+  
+  // Loom: https://www.loom.com/share/VIDEO_ID
+  const loomMatch = url.match(/loom\.com\/share\/([^?\s]+)/);
+  if (loomMatch) {
+    return `https://www.loom.com/embed/${loomMatch[1]}`;
+  }
+  
+  // Return as-is if no match (might already be embeddable)
+  return url;
+}
 
 interface ResourceLink {
   title: string;
@@ -56,37 +99,65 @@ export function LessonViewer({
     setMarking(true);
     const newStatus = !isCompleted;
 
-    if (newStatus) {
-      const { error } = await supabase.from('user_progress').upsert(
-        {
-          user_id: userId,
-          lesson_id: lesson.id,
-          completed: true,
-          completed_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,lesson_id' }
-      );
+    try {
+      if (newStatus) {
+        // First check if record exists
+        const { data: existing } = await supabase
+          .from('user_progress')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('lesson_id', lesson.id)
+          .maybeSingle();
 
-      if (error) {
-        toast.error('Failed to mark lesson as complete');
-      } else {
-        toast.success('Lesson marked as complete!');
-        onMarkComplete(lesson.id, true);
-      }
-    } else {
-      const { error } = await supabase
-        .from('user_progress')
-        .update({ completed: false, completed_at: null })
-        .eq('user_id', userId)
-        .eq('lesson_id', lesson.id);
+        let error;
+        if (existing) {
+          // Update existing record
+          const result = await supabase
+            .from('user_progress')
+            .update({ completed: true, completed_at: new Date().toISOString() })
+            .eq('user_id', userId)
+            .eq('lesson_id', lesson.id);
+          error = result.error;
+        } else {
+          // Insert new record
+          const result = await supabase
+            .from('user_progress')
+            .insert({
+              user_id: userId,
+              lesson_id: lesson.id,
+              completed: true,
+              completed_at: new Date().toISOString(),
+            });
+          error = result.error;
+        }
 
-      if (error) {
-        toast.error('Failed to update lesson status');
+        if (error) {
+          console.error('Progress update error:', error);
+          toast.error('Failed to mark lesson as complete');
+        } else {
+          toast.success('Lesson marked as complete!');
+          onMarkComplete(lesson.id, true);
+        }
       } else {
-        onMarkComplete(lesson.id, false);
+        const { error } = await supabase
+          .from('user_progress')
+          .update({ completed: false, completed_at: null })
+          .eq('user_id', userId)
+          .eq('lesson_id', lesson.id);
+
+        if (error) {
+          console.error('Progress update error:', error);
+          toast.error('Failed to update lesson status');
+        } else {
+          onMarkComplete(lesson.id, false);
+        }
       }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast.error('An error occurred');
+    } finally {
+      setMarking(false);
     }
-    setMarking(false);
   };
 
   const resourceLinks = (lesson.resource_links as ResourceLink[]) || [];
@@ -122,10 +193,11 @@ export function LessonViewer({
           {lesson.video_url && (
             <div className="aspect-video bg-muted rounded-lg overflow-hidden">
               <iframe
-                src={lesson.video_url}
+                src={getEmbedUrl(lesson.video_url)}
                 className="w-full h-full"
                 allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
               />
             </div>
           )}
