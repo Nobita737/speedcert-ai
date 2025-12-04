@@ -1,4 +1,4 @@
-import { LayoutDashboard, CreditCard, Users, BookOpen, LogOut, ArrowLeft, Award } from 'lucide-react';
+import { LayoutDashboard, CreditCard, Users, BookOpen, LogOut, ArrowLeft, Award, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,6 +13,7 @@ const menuItems = [
   { id: 'payments', label: 'Payments', icon: CreditCard },
   { id: 'users', label: 'Users', icon: Users },
   { id: 'lessons', label: 'Lessons', icon: BookOpen },
+  { id: 'quizzes', label: 'Quizzes', icon: Trophy },
   { id: 'certificates', label: 'Certificates', icon: Award },
 ];
 
