@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -51,6 +51,9 @@ export default function Dashboard() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [showCertificateDialog, setShowCertificateDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("week1");
+  const [openLessonId, setOpenLessonId] = useState<number | null>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -173,6 +176,17 @@ export default function Dashboard() {
       setShowProfileModal(true);
     } else {
       setShowPaymentDialog(true);
+    }
+  };
+
+  const handleContinueLearning = () => {
+    if (data?.nextLesson) {
+      setActiveTab(`week${data.nextLesson.week}`);
+      setOpenLessonId(data.nextLesson.id);
+      // Scroll to tabs section
+      setTimeout(() => {
+        tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
   };
 
@@ -332,7 +346,7 @@ export default function Dashboard() {
                 <p className="text-lg mb-1">{data.nextLesson.title}</p>
                 <p className="text-sm opacity-90">Week {data.nextLesson.week} • {data.nextLesson.estimated_minutes} mins</p>
               </div>
-              <Button size="lg" variant="secondary" className="gap-2">
+              <Button size="lg" variant="secondary" className="gap-2" onClick={handleContinueLearning}>
                 Continue Learning
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -341,40 +355,48 @@ export default function Dashboard() {
         )}
 
         {/* Course Content Tabs */}
-        <Tabs defaultValue="week1" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="week1">Week 1: Learn</TabsTrigger>
-            <TabsTrigger value="week2">Week 2: Use</TabsTrigger>
-            <TabsTrigger value="week3">Week 3: Project</TabsTrigger>
-          </TabsList>
+        <div ref={tabsRef}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="week1">Week 1: Learn</TabsTrigger>
+              <TabsTrigger value="week2">Week 2: Use</TabsTrigger>
+              <TabsTrigger value="week3">Week 3: Project</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="week1">
-            <WeekLessons
-              week={1}
-              userId={user.id}
-              isEnrolled={data.profile.enrolled}
-              onEnrollmentRequired={handleEnrollNow}
-            />
-          </TabsContent>
+            <TabsContent value="week1">
+              <WeekLessons
+                week={1}
+                userId={user.id}
+                isEnrolled={data.profile.enrolled}
+                onEnrollmentRequired={handleEnrollNow}
+                openLessonId={activeTab === "week1" ? openLessonId : null}
+                onLessonOpened={() => setOpenLessonId(null)}
+              />
+            </TabsContent>
 
-          <TabsContent value="week2">
-            <WeekLessons
-              week={2}
-              userId={user.id}
-              isEnrolled={data.profile.enrolled}
-              onEnrollmentRequired={handleEnrollNow}
-            />
-          </TabsContent>
+            <TabsContent value="week2">
+              <WeekLessons
+                week={2}
+                userId={user.id}
+                isEnrolled={data.profile.enrolled}
+                onEnrollmentRequired={handleEnrollNow}
+                openLessonId={activeTab === "week2" ? openLessonId : null}
+                onLessonOpened={() => setOpenLessonId(null)}
+              />
+            </TabsContent>
 
-          <TabsContent value="week3">
-            <WeekLessons
-              week={3}
-              userId={user.id}
-              isEnrolled={data.profile.enrolled}
-              onEnrollmentRequired={handleEnrollNow}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="week3">
+              <WeekLessons
+                week={3}
+                userId={user.id}
+                isEnrolled={data.profile.enrolled}
+                onEnrollmentRequired={handleEnrollNow}
+                openLessonId={activeTab === "week3" ? openLessonId : null}
+                onLessonOpened={() => setOpenLessonId(null)}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       {/* Modals */}

@@ -32,9 +32,11 @@ interface WeekLessonsProps {
   userId: string;
   isEnrolled: boolean;
   onEnrollmentRequired: () => void;
+  openLessonId?: number | null;
+  onLessonOpened?: () => void;
 }
 
-export function WeekLessons({ week, userId, isEnrolled, onEnrollmentRequired }: WeekLessonsProps) {
+export function WeekLessons({ week, userId, isEnrolled, onEnrollmentRequired, openLessonId, onLessonOpened }: WeekLessonsProps) {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,18 @@ export function WeekLessons({ week, userId, isEnrolled, onEnrollmentRequired }: 
   useEffect(() => {
     loadLessons();
   }, [week, userId]);
+
+  // Auto-open lesson when openLessonId is set
+  useEffect(() => {
+    if (openLessonId && lessons.length > 0 && isEnrolled) {
+      const lessonToOpen = lessons.find(l => l.id === openLessonId);
+      if (lessonToOpen) {
+        setSelectedLesson(lessonToOpen);
+        setViewerOpen(true);
+        onLessonOpened?.();
+      }
+    }
+  }, [openLessonId, lessons, isEnrolled]);
 
   const loadLessons = async () => {
     setLoading(true);
