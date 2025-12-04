@@ -11,7 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Clock, ExternalLink, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Clock, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
+import { LessonQuiz } from './LessonQuiz';
 
 // Convert various video URLs to embeddable format
 function getEmbedUrl(url: string): string {
@@ -255,6 +256,9 @@ export function LessonViewer({
               </div>
             </div>
           )}
+
+          {/* Quiz Section */}
+          <LessonQuiz lessonId={lesson.id} userId={userId} />
 
           {/* Mark Complete */}
           <div className="flex items-center justify-between pt-4 border-t">
