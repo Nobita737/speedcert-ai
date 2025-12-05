@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Clock, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
+import { Clock, ExternalLink, FileText, CheckCircle2, ChevronRight, ArrowLeft } from 'lucide-react';
 import { LessonQuiz } from './LessonQuiz';
 
 // Convert various video URLs to embeddable format
@@ -93,6 +93,26 @@ export function LessonViewer({
   onMarkComplete,
 }: LessonViewerProps) {
   const [marking, setMarking] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'lesson' | 'quiz'>('lesson');
+  const [hasQuiz, setHasQuiz] = useState(false);
+
+  // Reset step when lesson changes
+  useEffect(() => {
+    setCurrentStep('lesson');
+    setHasQuiz(false);
+    
+    if (lesson) {
+      // Check if quiz exists for this lesson
+      supabase
+        .from('quizzes')
+        .select('id')
+        .eq('lesson_id', lesson.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          setHasQuiz(!!data);
+        });
+    }
+  }, [lesson?.id]);
 
   if (!lesson) return null;
 
@@ -161,6 +181,14 @@ export function LessonViewer({
     }
   };
 
+  const handleNext = () => {
+    if (!isCompleted) {
+      toast.info('Please mark the lesson as complete before taking the quiz');
+      return;
+    }
+    setCurrentStep('quiz');
+  };
+
   const resourceLinks = (lesson.resource_links as ResourceLink[]) || [];
 
   return (
@@ -178,6 +206,9 @@ export function LessonViewer({
                     {lesson.estimated_minutes} min
                   </span>
                 )}
+                {currentStep === 'quiz' && (
+                  <Badge variant="secondary">Quiz</Badge>
+                )}
               </DialogDescription>
             </div>
             {isCompleted && (
@@ -190,94 +221,128 @@ export function LessonViewer({
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
-          {/* Video Section */}
-          {lesson.video_url && (
-            <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-              <iframe
-                src={getEmbedUrl(lesson.video_url)}
-                className="w-full h-full"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            </div>
-          )}
+          {currentStep === 'lesson' ? (
+            <>
+              {/* Video Section */}
+              {lesson.video_url && (
+                <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                  <iframe
+                    src={getEmbedUrl(lesson.video_url)}
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                </div>
+              )}
 
-          {/* Description */}
-          {lesson.description && (
-            <div>
-              <h4 className="font-semibold mb-2">About this lesson</h4>
-              <p className="text-muted-foreground">{lesson.description}</p>
-            </div>
-          )}
+              {/* Description */}
+              {lesson.description && (
+                <div>
+                  <h4 className="font-semibold mb-2">About this lesson</h4>
+                  <p className="text-muted-foreground">{lesson.description}</p>
+                </div>
+              )}
 
-          {/* Resources */}
-          {(lesson.resource_pdf_url || lesson.transcript_url || resourceLinks.length > 0) && (
-            <div>
-              <h4 className="font-semibold mb-3">Resources</h4>
-              <div className="space-y-2">
-                {lesson.resource_pdf_url && (
-                  <a
-                    href={lesson.resource_pdf_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors"
+              {/* Resources */}
+              {(lesson.resource_pdf_url || lesson.transcript_url || resourceLinks.length > 0) && (
+                <div>
+                  <h4 className="font-semibold mb-3">Resources</h4>
+                  <div className="space-y-2">
+                    {lesson.resource_pdf_url && (
+                      <a
+                        href={lesson.resource_pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors"
+                      >
+                        <FileText className="h-5 w-5 text-primary" />
+                        <span>Download PDF Resources</span>
+                        <ExternalLink className="h-4 w-4 ml-auto" />
+                      </a>
+                    )}
+                    {lesson.transcript_url && (
+                      <a
+                        href={lesson.transcript_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors"
+                      >
+                        <FileText className="h-5 w-5 text-primary" />
+                        <span>View Transcript</span>
+                        <ExternalLink className="h-4 w-4 ml-auto" />
+                      </a>
+                    )}
+                    {resourceLinks.map((link, index) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors"
+                      >
+                        <ExternalLink className="h-5 w-5 text-primary" />
+                        <span>{link.title}</span>
+                        <ExternalLink className="h-4 w-4 ml-auto" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mark Complete + Next Button */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="complete"
+                    checked={isCompleted}
+                    onCheckedChange={handleToggleComplete}
+                    disabled={marking}
+                  />
+                  <label
+                    htmlFor="complete"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    <FileText className="h-5 w-5 text-primary" />
-                    <span>Download PDF Resources</span>
-                    <ExternalLink className="h-4 w-4 ml-auto" />
-                  </a>
-                )}
-                {lesson.transcript_url && (
-                  <a
-                    href={lesson.transcript_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors"
-                  >
-                    <FileText className="h-5 w-5 text-primary" />
-                    <span>View Transcript</span>
-                    <ExternalLink className="h-4 w-4 ml-auto" />
-                  </a>
-                )}
-                {resourceLinks.map((link, index) => (
-                  <a
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors"
-                  >
-                    <ExternalLink className="h-5 w-5 text-primary" />
-                    <span>{link.title}</span>
-                    <ExternalLink className="h-4 w-4 ml-auto" />
-                  </a>
-                ))}
+                    Mark as complete
+                  </label>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => onOpenChange(false)}>
+                    Close
+                  </Button>
+                  {hasQuiz && (
+                    <Button onClick={handleNext}>
+                      Next: Take Quiz
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
+            </>
+          ) : (
+            <>
+              {/* Quiz Step */}
+              <div className="flex items-center mb-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setCurrentStep('lesson')}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back to Lesson
+                </Button>
+              </div>
+              
+              <LessonQuiz lessonId={lesson.id} userId={userId} />
+              
+              <div className="pt-4 border-t">
+                <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">
+                  Close
+                </Button>
+              </div>
+            </>
           )}
-
-          {/* Quiz Section */}
-          <LessonQuiz lessonId={lesson.id} userId={userId} />
-
-          {/* Mark Complete */}
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="complete"
-                checked={isCompleted}
-                onCheckedChange={handleToggleComplete}
-                disabled={marking}
-              />
-              <label
-                htmlFor="complete"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Mark as complete
-              </label>
-            </div>
-            <Button onClick={() => onOpenChange(false)}>Close</Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
