@@ -20,15 +20,23 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
+    // Client for user authentication
+    const supabaseAuth = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    // Admin client for database operations (bypasses RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
     if (authError || !user) {
+      console.error('Auth error:', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
@@ -57,9 +65,9 @@ serve(async (req) => {
     let finalPrice = price;
     let couponId = null;
 
-    // Validate coupon if provided
+    // Validate coupon if provided (using admin client)
     if (couponCode) {
-      const { data: couponData, error: couponError } = await supabase.rpc('validate_coupon', {
+      const { data: couponData, error: couponError } = await supabaseAdmin.rpc('validate_coupon', {
         p_code: couponCode,
         p_user_id: user.id,
         p_amount: price
@@ -85,8 +93,8 @@ serve(async (req) => {
       }
     }
 
-    // Create pending payment record (will be matched by webhook)
-    const { data: payment, error: paymentError } = await supabase
+    // Create pending payment record using admin client (bypasses RLS)
+    const { data: payment, error: paymentError } = await supabaseAdmin
       .from('payments')
       .insert({
         user_id: user.id,
@@ -108,10 +116,10 @@ serve(async (req) => {
 
     console.log('Pending payment record created:', payment.id);
 
-    // Apply coupon if one was used
+    // Apply coupon if one was used (using admin client)
     if (couponId) {
       const discountAmount = price - finalPrice;
-      await supabase.rpc('apply_coupon', {
+      await supabaseAdmin.rpc('apply_coupon', {
         p_coupon_id: couponId,
         p_user_id: user.id,
         p_payment_id: payment.id,
