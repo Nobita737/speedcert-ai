@@ -49,7 +49,7 @@ const Footer = () => {
             <h4 className="font-semibold mb-4 text-background">Support</h4>
             <ul className="space-y-2 text-background/80">
               <li><a href="#" className="hover:text-accent transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Contact Us</a></li>
+              <li><Link to="/contact" className="hover:text-accent transition-colors">Contact Us</Link></li>
               <li><Link to="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-accent transition-colors">Terms of Service</Link></li>
               <li><Link to="/refund-policy" className="hover:text-accent transition-colors">Refund Policy</Link></li>
