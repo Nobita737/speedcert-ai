@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "AI Certification Platform <onboarding@resend.dev>",
-        to: ["contact@getaicertified.online"], // Replace with actual admin email
+        to: ["hackthon9165@gmail.com"], // Replace with actual admin email
         subject: `Contact Form: ${subject}`,
         html: `
           <h2>New Contact Form Submission</h2>
