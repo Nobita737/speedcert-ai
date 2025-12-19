@@ -93,6 +93,69 @@ serve(async (req) => {
       }
     }
 
+    // Get user profile for payment link
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('name, email, phone')
+      .eq('id', user.id)
+      .single();
+
+    // Create Razorpay Payment Link with dynamic amount
+    const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID');
+    const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+
+    if (!razorpayKeyId || !razorpayKeySecret) {
+      console.error('Razorpay credentials not configured');
+      return new Response(
+        JSON.stringify({ error: 'Payment gateway not configured' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    const authString = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
+    
+    // Create a payment link with the exact amount
+    const paymentLinkResponse = await fetch('https://api.razorpay.com/v1/payment_links', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: finalPrice * 100, // Razorpay expects amount in paise
+        currency: 'INR',
+        description: 'AI Certification Program Enrollment',
+        customer: {
+          name: profile?.name || 'Student',
+          email: profile?.email || user.email,
+          contact: profile?.phone || '',
+        },
+        notify: {
+          sms: true,
+          email: true,
+        },
+        reminder_enable: true,
+        notes: {
+          user_id: user.id,
+          coupon_code: couponCode || '',
+        },
+        callback_url: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app')}/dashboard`,
+        callback_method: 'get',
+      }),
+    });
+
+    if (!paymentLinkResponse.ok) {
+      const errorData = await paymentLinkResponse.json();
+      console.error('Razorpay API error:', errorData);
+      return new Response(
+        JSON.stringify({ error: 'Failed to create payment link' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    const paymentLinkData = await paymentLinkResponse.json();
+    console.log('Payment link created:', paymentLinkData.id);
+
     // Create pending payment record using admin client (bypasses RLS)
     const { data: payment, error: paymentError } = await supabaseAdmin
       .from('payments')
@@ -101,7 +164,8 @@ serve(async (req) => {
         amount: finalPrice,
         provider: 'razorpay',
         status: 'pending',
-        currency: 'INR'
+        currency: 'INR',
+        provider_order_id: paymentLinkData.id,
       })
       .select()
       .single();
@@ -129,7 +193,7 @@ serve(async (req) => {
       console.log('Coupon applied to payment');
     }
 
-    // Return success with Razorpay.me link
+    // Return success with dynamic Razorpay payment link
     return new Response(
       JSON.stringify({
         success: true,
@@ -138,7 +202,8 @@ serve(async (req) => {
           amount: finalPrice,
           provider: 'razorpay',
           providerPayload: {
-            paymentLinkUrl: 'http://Razorpay.me/@campaynprivatelimited'
+            paymentLinkUrl: paymentLinkData.short_url,
+            paymentLinkId: paymentLinkData.id,
           }
         }
       }),
