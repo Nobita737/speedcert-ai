@@ -53,16 +53,25 @@ serve(async (req) => {
       );
     }
 
-    if (!paymentProvider || !price) {
+    // Parse and validate price - default to 999 if not provided
+    const originalPrice = Number(price) || 999;
+    if (originalPrice <= 0) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: paymentProvider, price' }),
+        JSON.stringify({ error: 'Invalid price' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 
-    console.log('Initiating payment for user:', user.id, 'amount:', price);
+    if (!paymentProvider) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required field: paymentProvider' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
 
-    let finalPrice = price;
+    console.log('Initiating payment for user:', user.id, 'original amount:', originalPrice);
+
+    let finalPrice = originalPrice;
     let couponId = null;
 
     // Validate coupon if provided (using admin client)
@@ -70,7 +79,7 @@ serve(async (req) => {
       const { data: couponData, error: couponError } = await supabaseAdmin.rpc('validate_coupon', {
         p_code: couponCode,
         p_user_id: user.id,
-        p_amount: price
+        p_amount: originalPrice
       });
 
       if (couponError) {
@@ -82,7 +91,7 @@ serve(async (req) => {
       }
 
       if (couponData && couponData.valid) {
-        finalPrice = couponData.final_price;
+        finalPrice = Number(couponData.final_price) || originalPrice;
         couponId = couponData.coupon_id;
         console.log('Coupon applied, new price:', finalPrice);
       } else {
@@ -114,6 +123,10 @@ serve(async (req) => {
 
     const authString = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
     
+    // Ensure amount is a valid integer in paise
+    const amountInPaise = Math.round(finalPrice * 100);
+    console.log('Creating Razorpay payment link with amount:', amountInPaise, 'paise');
+    
     // Create a payment link with the exact amount
     const paymentLinkResponse = await fetch('https://api.razorpay.com/v1/payment_links', {
       method: 'POST',
@@ -122,7 +135,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: finalPrice * 100, // Razorpay expects amount in paise
+        amount: amountInPaise, // Razorpay expects amount in paise
         currency: 'INR',
         description: 'AI Certification Program Enrollment',
         customer: {
