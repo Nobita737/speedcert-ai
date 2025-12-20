@@ -123,50 +123,65 @@ serve(async (req) => {
 
     const authString = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
     
-    // Ensure amount is a valid integer in paise
-    const amountInPaise = Math.round(finalPrice * 100);
-    console.log('Creating Razorpay payment link with amount:', amountInPaise, 'paise');
+    // Ensure amount is a valid integer in paise (minimum ₹1 = 100 paise)
+    const amountInPaise = Math.max(100, Math.round(finalPrice * 100));
+    console.log('Creating Razorpay payment link with amount:', amountInPaise, 'paise (₹', finalPrice, ')');
+    
+    // Get the app URL for callback
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    // Extract project ID from URL and construct the lovable.app callback URL
+    const projectId = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || '';
+    const callbackUrl = projectId 
+      ? `https://${projectId}.lovable.app/dashboard`
+      : `${supabaseUrl}/dashboard`;
+    
+    console.log('Callback URL:', callbackUrl);
     
     // Create a payment link with the exact amount
+    const paymentLinkBody = {
+      amount: amountInPaise, // Razorpay expects amount in paise
+      currency: 'INR',
+      description: 'AI Certification Program Enrollment',
+      customer: {
+        name: profile?.name || 'Student',
+        email: profile?.email || user.email,
+        contact: profile?.phone || '',
+      },
+      notify: {
+        sms: true,
+        email: true,
+      },
+      reminder_enable: true,
+      notes: {
+        user_id: user.id,
+        coupon_code: couponCode || '',
+      },
+      callback_url: callbackUrl,
+      callback_method: 'get',
+    };
+    
+    console.log('Razorpay request body:', JSON.stringify(paymentLinkBody));
+    
     const paymentLinkResponse = await fetch('https://api.razorpay.com/v1/payment_links', {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${authString}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        amount: amountInPaise, // Razorpay expects amount in paise
-        currency: 'INR',
-        description: 'AI Certification Program Enrollment',
-        customer: {
-          name: profile?.name || 'Student',
-          email: profile?.email || user.email,
-          contact: profile?.phone || '',
-        },
-        notify: {
-          sms: true,
-          email: true,
-        },
-        reminder_enable: true,
-        notes: {
-          user_id: user.id,
-          coupon_code: couponCode || '',
-        },
-        callback_url: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app')}/dashboard`,
-        callback_method: 'get',
-      }),
+      body: JSON.stringify(paymentLinkBody),
     });
 
+    const responseData = await paymentLinkResponse.json();
+    
     if (!paymentLinkResponse.ok) {
-      const errorData = await paymentLinkResponse.json();
-      console.error('Razorpay API error:', errorData);
+      console.error('Razorpay API error:', JSON.stringify(responseData));
       return new Response(
-        JSON.stringify({ error: 'Failed to create payment link' }),
+        JSON.stringify({ error: 'Failed to create payment link', details: responseData }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
-
-    const paymentLinkData = await paymentLinkResponse.json();
+    
+    const paymentLinkData = responseData;
     console.log('Payment link created:', paymentLinkData.id);
 
     // Create pending payment record using admin client (bypasses RLS)
