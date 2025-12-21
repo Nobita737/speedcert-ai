@@ -139,9 +139,19 @@ export function PaymentDialog({ open, onOpenChange, userProfile }: PaymentDialog
         });
         setErrors(fieldErrors);
       } else {
+        const ctxBody = (err as any)?.context?.body;
+        const details = ctxBody?.details || ctxBody;
+
+        const message =
+          details?.error_description ||
+          details?.error?.description ||
+          details?.error?.message ||
+          details?.error ||
+          (err instanceof Error ? err.message : "Something went wrong");
+
         toast({
           title: "Payment Failed",
-          description: err instanceof Error ? err.message : "Something went wrong",
+          description: String(message),
           variant: "destructive",
         });
       }
