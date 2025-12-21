@@ -75,8 +75,8 @@ serve(async (req) => {
     let finalPrice = originalPrice;
     let couponId = null;
 
-    // Validate coupon if provided (using admin client)
-    if (couponCode) {
+    // Validate coupon if provided (using admin client) - only if non-empty string
+    if (couponCode && typeof couponCode === 'string' && couponCode.trim().length > 0) {
       const { data: couponData, error: couponError } = await supabaseAdmin.rpc('validate_coupon', {
         p_code: couponCode,
         p_user_id: user.id,

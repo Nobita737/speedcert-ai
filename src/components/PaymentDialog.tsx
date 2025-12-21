@@ -115,7 +115,8 @@ export function PaymentDialog({ open, onOpenChange, userProfile }: PaymentDialog
         body: {
           userId: userProfile.id,
           paymentProvider: 'razorpay',
-          couponCode: validated.couponCode,
+          // Only pass coupon code if it was validated as valid
+          couponCode: couponValidation.valid ? validated.couponCode : undefined,
           price: finalPrice,
         }
       });
