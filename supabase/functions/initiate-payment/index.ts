@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+import { encode as base64Encode } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -121,8 +122,8 @@ serve(async (req) => {
       );
     }
 
-    const authString = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
-    
+    const authString = base64Encode(`${razorpayKeyId}:${razorpayKeySecret}`);
+
     // Ensure amount is a valid integer in paise (minimum ₹1 = 100 paise)
     const amountInPaise = Math.max(100, Math.round(finalPrice * 100));
     console.log('Creating Razorpay payment link with amount:', amountInPaise, 'paise (₹', finalPrice, ')');
@@ -210,16 +211,22 @@ serve(async (req) => {
 
     // Apply coupon if one was used (using admin client)
     if (couponId) {
-      const discountAmount = price - finalPrice;
-      await supabaseAdmin.rpc('apply_coupon', {
+      const discountAmount = Math.max(0, Math.round(originalPrice - finalPrice));
+      const { error: applyCouponError } = await supabaseAdmin.rpc('apply_coupon', {
         p_coupon_id: couponId,
         p_user_id: user.id,
         p_payment_id: payment.id,
-        p_original_price: price,
-        p_discount: discountAmount
+        p_original_price: Math.round(originalPrice),
+        p_discount: discountAmount,
       });
-      console.log('Coupon applied to payment');
+
+      if (applyCouponError) {
+        console.error('Failed to record coupon usage:', applyCouponError);
+      } else {
+        console.log('Coupon applied to payment');
+      }
     }
+
 
     // Return success with dynamic Razorpay payment link
     return new Response(
