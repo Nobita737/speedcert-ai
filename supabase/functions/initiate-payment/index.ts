@@ -128,13 +128,13 @@ serve(async (req) => {
     const amountInPaise = Math.max(100, Math.round(finalPrice * 100));
     console.log('Creating Razorpay payment link with amount:', amountInPaise, 'paise (₹', finalPrice, ')');
     
-    // Get the app URL for callback
+    // Get the app URL for callback - redirect to payment-status page
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     // Extract project ID from URL and construct the lovable.app callback URL
     const projectId = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || '';
     const callbackUrl = projectId 
-      ? `https://${projectId}.lovable.app/dashboard`
-      : `${supabaseUrl}/dashboard`;
+      ? `https://${projectId}.lovable.app/payment-status`
+      : `${supabaseUrl}/payment-status`;
     
     console.log('Callback URL:', callbackUrl);
     
