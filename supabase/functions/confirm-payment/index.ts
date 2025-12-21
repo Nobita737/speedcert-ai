@@ -134,7 +134,7 @@ serve(async (req) => {
     const { error: payUpdateError } = await supabaseAdmin
       .from("payments")
       .update({
-        status: "completed",
+        status: "paid",
         provider_payment_id: providerPaymentId,
         updated_at: new Date().toISOString(),
       })

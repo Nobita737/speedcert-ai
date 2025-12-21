@@ -67,37 +67,33 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Find matching pending payment (match by email, amount within 1% tolerance, and recent)
+    // Find matching pending payment
+    // Prefer matching by user_id from Razorpay notes (reliable even when email is missing)
+    const notesUserId = (paymentData?.notes && typeof paymentData.notes.user_id === 'string')
+      ? paymentData.notes.user_id
+      : null;
+
     const amountTolerance = amount * 0.01;
-    const { data: pendingPayments, error: searchError } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('status', 'pending')
-      .eq('currency', 'INR')
-      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-      .order('created_at', { ascending: false });
 
-    if (searchError) {
-      console.error('Error searching for pending payments:', searchError);
-      return new Response('Database error', { status: 500 });
-    }
+    let matchedPayment: any = null;
 
-    if (!pendingPayments || pendingPayments.length === 0) {
-      console.error('No pending payments found');
-      return new Response('No matching payment found', { status: 404 });
-    }
+    if (notesUserId) {
+      const { data: paymentByUser, error: byUserError } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('user_id', notesUserId)
+        .eq('status', 'pending')
+        .eq('currency', 'INR')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-    // Find best match by email and amount
-    let matchedPayment = null;
-    for (const payment of pendingPayments) {
-      // Get user profile to check email
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('id', payment.user_id)
-        .single();
+      if (byUserError) {
+        console.error('Error searching pending payments by user_id:', byUserError);
+        return new Response('Database error', { status: 500 });
+      }
 
-      if (profile && profile.email.toLowerCase() === email?.toLowerCase()) {
+      for (const payment of paymentByUser || []) {
         const amountDiff = Math.abs(payment.amount - amount);
         if (amountDiff <= amountTolerance) {
           matchedPayment = payment;
@@ -106,8 +102,45 @@ serve(async (req) => {
       }
     }
 
+    // Fallback: match by email (older logic)
     if (!matchedPayment) {
-      console.error('No matching payment found for email:', email, 'amount:', amount);
+      const { data: pendingPayments, error: searchError } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('status', 'pending')
+        .eq('currency', 'INR')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false });
+
+      if (searchError) {
+        console.error('Error searching for pending payments:', searchError);
+        return new Response('Database error', { status: 500 });
+      }
+
+      if (!pendingPayments || pendingPayments.length === 0) {
+        console.error('No pending payments found');
+        return new Response('No matching payment found', { status: 404 });
+      }
+
+      for (const payment of pendingPayments) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', payment.user_id)
+          .single();
+
+        if (profile && profile.email.toLowerCase() === email?.toLowerCase()) {
+          const amountDiff = Math.abs(payment.amount - amount);
+          if (amountDiff <= amountTolerance) {
+            matchedPayment = payment;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!matchedPayment) {
+      console.error('No matching payment found for notesUserId:', notesUserId, 'email:', email, 'amount:', amount);
       return new Response('No matching payment found', { status: 404 });
     }
 
@@ -117,7 +150,7 @@ serve(async (req) => {
     const { error: updateError } = await supabase
       .from('payments')
       .update({
-        status: 'completed',
+        status: 'paid',
         provider_payment_id: razorpayPaymentId,
         updated_at: new Date().toISOString(),
       })
