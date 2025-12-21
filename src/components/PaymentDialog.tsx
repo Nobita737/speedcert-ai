@@ -118,6 +118,7 @@ export function PaymentDialog({ open, onOpenChange, userProfile }: PaymentDialog
           // Only pass coupon code if it was validated as valid
           couponCode: couponValidation.valid ? validated.couponCode : undefined,
           price: finalPrice,
+          returnUrl: window.location.origin,
         }
       });
 

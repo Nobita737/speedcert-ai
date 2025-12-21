@@ -18,13 +18,14 @@ export default function PaymentStatus() {
 
   useEffect(() => {
     if (authLoading) return;
-    
+
     if (!user) {
       navigate("/auth");
       return;
     }
 
     verifyPayment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
   const verifyPayment = async () => {
@@ -40,103 +41,67 @@ export default function PaymentStatus() {
       razorpayPaymentLinkStatus,
     });
 
-    // If Razorpay says paid, update immediately
-    if (razorpayPaymentLinkStatus === "paid" && razorpayPaymentId) {
-      setMessage("Payment received! Activating your course...");
-      await activateCourse(pendingPaymentId, razorpayPaymentId);
+    // If we have the payment link id, ask backend to verify and unlock (bypasses client RLS limitations).
+    if (razorpayPaymentLinkId) {
+      setMessage("Checking payment with gateway...");
+      await confirmWithBackend({
+        pendingPaymentId,
+        razorpayPaymentLinkId,
+        razorpayPaymentId,
+      });
       return;
     }
 
-    // Otherwise poll for webhook confirmation
-    pollPaymentStatus(pendingPaymentId);
+    // Otherwise poll for webhook confirmation (fallback)
+    pollEnrollmentFallback(pendingPaymentId);
   };
 
-  const activateCourse = async (paymentId: string | null, razorpayPaymentId: string) => {
+  const confirmWithBackend = async (params: {
+    pendingPaymentId: string | null;
+    razorpayPaymentLinkId: string;
+    razorpayPaymentId: string | null;
+  }) => {
     try {
-      // Update payment record if we have one
-      if (paymentId) {
-        const { error: paymentError } = await supabase
-          .from("payments")
-          .update({
-            status: "completed",
-            provider_payment_id: razorpayPaymentId,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", paymentId)
-          .eq("user_id", user!.id);
+      const { data, error } = await supabase.functions.invoke("confirm-payment", {
+        body: {
+          pendingPaymentId: params.pendingPaymentId,
+          razorpayPaymentLinkId: params.razorpayPaymentLinkId,
+          razorpayPaymentId: params.razorpayPaymentId,
+        },
+      });
 
-        if (paymentError) {
-          console.error("Failed to update payment:", paymentError);
-        }
-      }
+      if (error) throw error;
 
-      // Unlock the course for user
-      const cohortStart = new Date();
-      const cohortEnd = new Date();
-      cohortEnd.setDate(cohortEnd.getDate() + 21);
-
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          enrolled: true,
-          cohort_start: cohortStart.toISOString(),
-          cohort_end: cohortEnd.toISOString(),
-        })
-        .eq("id", user!.id);
-
-      if (profileError) {
-        console.error("Failed to unlock course:", profileError);
-        setState("failed");
-        setMessage("Payment received but failed to unlock course. Please contact support.");
+      if (data?.paid) {
+        localStorage.removeItem("pending_payment_id");
+        setState("success");
+        setMessage("Payment successful! Your course is now unlocked.");
+        setTimeout(() => navigate("/dashboard"), 2000);
         return;
       }
 
-      // Update any pending referral
-      await updateReferralStatus();
+      // Not paid yet → keep polling enrollment
+      setState("pending");
+      setMessage("Payment is not confirmed yet. We\'ll keep checking.");
+      pollEnrollmentFallback(params.pendingPaymentId);
+    } catch (err: any) {
+      const ctxBody = err?.context?.body;
+      const details = ctxBody?.details || ctxBody;
+      const msg =
+        details?.error_description ||
+        details?.error?.description ||
+        details?.error?.message ||
+        details?.error ||
+        err?.message ||
+        "Failed to verify payment";
 
-      // Clear pending payment
-      localStorage.removeItem("pending_payment_id");
-
-      setState("success");
-      setMessage("Payment successful! Your course is now unlocked.");
-
-      // Redirect to dashboard after 3 seconds
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 3000);
-    } catch (error) {
-      console.error("Error activating course:", error);
+      console.error("confirm-payment failed:", details || err);
       setState("failed");
-      setMessage("Something went wrong. Please contact support.");
+      setMessage(String(msg));
     }
   };
 
-  const updateReferralStatus = async () => {
-    try {
-      // Check if user was referred
-      const { data: referral } = await supabase
-        .from("referrals")
-        .select("id, status")
-        .eq("referee_id", user!.id)
-        .eq("status", "pending")
-        .single();
-
-      if (referral) {
-        await supabase
-          .from("referrals")
-          .update({
-            status: "enrolled_paid",
-            enrolled_at: new Date().toISOString(),
-          })
-          .eq("id", referral.id);
-      }
-    } catch (error) {
-      // Referral update is non-critical
-      console.log("No pending referral to update");
-    }
-  };
-
-  const pollPaymentStatus = async (paymentId: string | null) => {
+  const pollEnrollmentFallback = async (paymentId: string | null) => {
     const maxPolls = 20;
     let currentPoll = 0;
 
@@ -144,7 +109,6 @@ export default function PaymentStatus() {
       currentPoll++;
       setPollCount(currentPoll);
 
-      // Check profile enrollment status
       const { data: profile } = await supabase
         .from("profiles")
         .select("enrolled")
@@ -155,25 +119,17 @@ export default function PaymentStatus() {
         localStorage.removeItem("pending_payment_id");
         setState("success");
         setMessage("Payment successful! Your course is now unlocked.");
-        setTimeout(() => navigate("/dashboard"), 3000);
+        setTimeout(() => navigate("/dashboard"), 2000);
         return;
       }
 
-      // Check payment status if we have an ID
+      // If we have a payment row, check for completed/failed (read-only is allowed by RLS)
       if (paymentId) {
         const { data: payment } = await supabase
           .from("payments")
           .select("status")
           .eq("id", paymentId)
           .single();
-
-        if (payment?.status === "completed") {
-          localStorage.removeItem("pending_payment_id");
-          setState("success");
-          setMessage("Payment successful! Your course is now unlocked.");
-          setTimeout(() => navigate("/dashboard"), 3000);
-          return;
-        }
 
         if (payment?.status === "failed") {
           setState("failed");
@@ -188,10 +144,11 @@ export default function PaymentStatus() {
         return;
       }
 
-      // Continue polling
       setTimeout(poll, 2000);
     };
 
+    setState("checking");
+    setMessage("Verifying your payment...");
     poll();
   };
 
@@ -220,9 +177,7 @@ export default function PaymentStatus() {
         {state === "checking" && (
           <>
             <div className="flex justify-center">
-              <div className="relative">
-                <Loader2 className="w-16 h-16 animate-spin text-primary" />
-              </div>
+              <Loader2 className="w-16 h-16 animate-spin text-primary" />
             </div>
             <div>
               <h1 className="text-2xl font-bold mb-2">Verifying Payment</h1>
@@ -242,13 +197,9 @@ export default function PaymentStatus() {
               <CheckCircle className="w-16 h-16 text-green-500" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-2 text-green-600">
-                Payment Successful!
-              </h1>
+              <h1 className="text-2xl font-bold mb-2 text-green-600">Payment Successful!</h1>
               <p className="text-muted-foreground">{message}</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Redirecting to dashboard...
-              </p>
+              <p className="text-sm text-muted-foreground mt-2">Redirecting to dashboard...</p>
             </div>
             <Button onClick={handleGoToDashboard} className="w-full">
               Go to Dashboard Now
@@ -262,13 +213,10 @@ export default function PaymentStatus() {
               <AlertCircle className="w-16 h-16 text-yellow-500" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-2 text-yellow-600">
-                Verification Pending
-              </h1>
+              <h1 className="text-2xl font-bold mb-2 text-yellow-600">Verification Pending</h1>
               <p className="text-muted-foreground">{message}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                If you completed the payment, your course will be unlocked
-                shortly. You can also check your dashboard.
+                If you completed the payment, your course will be unlocked shortly.
               </p>
             </div>
             <div className="space-y-2">
@@ -288,21 +236,16 @@ export default function PaymentStatus() {
               <XCircle className="w-16 h-16 text-destructive" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-2 text-destructive">
-                Payment Failed
-              </h1>
+              <h1 className="text-2xl font-bold mb-2 text-destructive">Payment Failed</h1>
               <p className="text-muted-foreground">{message}</p>
             </div>
             <div className="space-y-2">
               <Button onClick={handleGoToDashboard} className="w-full">
                 Return to Dashboard
               </Button>
-              <p className="text-sm text-muted-foreground">
-                Need help?{" "}
-                <a href="mailto:support@example.com" className="text-primary underline">
-                  Contact Support
-                </a>
-              </p>
+              <Button onClick={handleRetry} variant="outline" className="w-full">
+                Try Verification Again
+              </Button>
             </div>
           </>
         )}

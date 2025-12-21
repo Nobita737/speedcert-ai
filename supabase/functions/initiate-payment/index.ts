@@ -44,7 +44,7 @@ serve(async (req) => {
       );
     }
 
-    const { userId, paymentProvider, couponCode, price } = await req.json();
+    const { userId, paymentProvider, couponCode, price, returnUrl } = await req.json();
 
     // Validate user ID matches authenticated user
     if (userId !== user.id) {
@@ -128,16 +128,25 @@ serve(async (req) => {
     const amountInPaise = Math.max(100, Math.round(finalPrice * 100));
     console.log('Creating Razorpay payment link with amount:', amountInPaise, 'paise (₹', finalPrice, ')');
     
-    // Get the app URL for callback - redirect to payment-status page
+    // Get the app URL for callback - prefer the current app origin (preview/dev) to avoid blank screens
+    const headerOrigin = req.headers.get('origin') || '';
+    const headerReferer = req.headers.get('referer') || '';
+
+    // Prefer explicit returnUrl from the client; fallback to Origin header.
+    const baseUrl = (typeof returnUrl === 'string' && returnUrl.startsWith('http'))
+      ? returnUrl
+      : headerOrigin || (headerReferer ? new URL(headerReferer).origin : '');
+
+    // Final fallback (only if we couldn't determine origin)
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    // Extract project ID from URL and construct the lovable.app callback URL
     const projectId = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || '';
-    const callbackUrl = projectId 
-      ? `https://${projectId}.lovable.app/payment-status`
-      : `${supabaseUrl}/payment-status`;
-    
+    const fallbackBase = projectId ? `https://${projectId}.lovable.app` : '';
+
+    const callbackUrl = `${(baseUrl || fallbackBase).replace(/\/$/, '')}/payment-status`;
+
+    console.log('Callback base:', baseUrl || fallbackBase);
     console.log('Callback URL:', callbackUrl);
-    
+
     // Create a payment link with the exact amount
     const paymentLinkBody = {
       amount: amountInPaise, // Razorpay expects amount in paise
@@ -161,7 +170,7 @@ serve(async (req) => {
       callback_method: 'get',
     };
     
-    console.log('Razorpay request body:', JSON.stringify(paymentLinkBody));
+    console.log('Razorpay request body:', JSON.stringify({ ...paymentLinkBody, customer: { ...paymentLinkBody.customer, contact: paymentLinkBody.customer.contact ? '[redacted]' : '' } }));
     
     const paymentLinkResponse = await fetch('https://api.razorpay.com/v1/payment_links', {
       method: 'POST',
